@@ -95,8 +95,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         final pushing = _pushingId == s.id;
                         return ListTile(
                           onTap: () => _openSession(s),
-                          title: Text(s.clientName.isEmpty ? 'Untitled' : s.clientName, style: const TextStyle(fontWeight: FontWeight.w700)),
-                          subtitle: Text(s.siteAddress),
+                          title: Text(
+                            s.projectName.isNotEmpty
+                                ? s.projectName
+                                : (s.clientName.isEmpty ? 'Untitled' : s.clientName),
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          subtitle: Text(s.clientName.isNotEmpty ? '${s.clientName} · ${s.siteAddress}' : s.siteAddress),
                           trailing: pushing
                               ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
                               : IconButton(

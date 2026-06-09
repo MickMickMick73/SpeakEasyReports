@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -47,17 +49,23 @@ class _ReportPreviewWidgetState extends State<ReportPreviewWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: widget.height ?? 360,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (!_ready) const Center(child: CircularProgressIndicator()),
-          ],
-        ),
+    final webView = ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Stack(
+        children: [
+          WebViewWidget(
+            controller: _controller,
+            gestureRecognizers: {
+              Factory<VerticalDragGestureRecognizer>(() => VerticalDragGestureRecognizer()),
+              Factory<HorizontalDragGestureRecognizer>(() => HorizontalDragGestureRecognizer()),
+            },
+          ),
+          if (!_ready) const Center(child: CircularProgressIndicator()),
+        ],
       ),
     );
+
+    if (widget.height == null) return webView;
+    return SizedBox(height: widget.height, child: webView);
   }
 }

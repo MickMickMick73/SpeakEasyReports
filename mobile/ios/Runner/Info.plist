@@ -19,11 +19,11 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.1.0</string>
+	<string>1.2.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>3</string>
+	<string>4</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
@@ -74,6 +74,19 @@
 	<string>SpeakEasy uses speech recognition to turn your voice into text during inspections.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>SpeakEasy can attach photos from your library when the camera is unavailable.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>SpeakEasy saves inspection photos and videos into a SpeakEasyReports album so your library stays organised.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.speakeasy.speakeasyReports</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>speakeasy</string>
+			</array>
+		</dict>
+	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Connect to your office PC on the local network for SpeakEasy Link and report sync.</string>
 	<key>NSBonjourServices</key>

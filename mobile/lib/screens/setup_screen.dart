@@ -80,11 +80,18 @@ class _SetupScreenState extends State<SetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Job details')),
+      appBar: AppBar(
+        title: Text(widget.state.activeSession!.projectName.isNotEmpty
+            ? widget.state.activeSession!.projectName
+            : 'Job details'),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('Tap a field to start speaking, or use the keyboard for typing.', style: TextStyle(color: AppColors.textMuted)),
+          const Text(
+            'Tap a field to record (green mic). Red mic means not recording. Use Accept to save, Clear to wipe, Keyboard only when you want typing.',
+            style: TextStyle(color: AppColors.textMuted),
+          ),
           const SizedBox(height: 16),
           VoiceInputField(
             label: 'Client name *',

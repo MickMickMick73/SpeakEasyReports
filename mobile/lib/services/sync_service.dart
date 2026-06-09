@@ -96,7 +96,8 @@ class SyncService {
     final manifest = <String, dynamic>{
       'sessionId': session.id,
       'vehicleId': session.clientName,
-      'jobReference': session.clientName,
+      'jobReference': session.projectName.isNotEmpty ? session.projectName : session.clientName,
+      'projectName': session.projectName,
       'inspectionType': session.inspectionType.name,
       'clientName': session.clientName,
       'clientEmail': session.clientEmail,
@@ -109,7 +110,7 @@ class SyncService {
       'technicianName': settings.inspectorName,
       'deviceId': 'flutter',
       'deviceModel': 'SpeakEasy Flutter',
-      'appVersion': '1.1.0',
+      'appVersion': '1.2.0',
       'startedAt': session.startedAt.toIso8601String(),
       'endedAt': session.endedAt?.toIso8601String(),
       'issues': [],

@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../app_state.dart';
 import '../models/session.dart';
+import '../services/media_album_service.dart';
 import '../services/speech_service.dart';
 import '../theme/app_theme.dart';
 import 'review_screen.dart';
@@ -28,6 +29,7 @@ class _InspectScreenState extends State<InspectScreen> {
   bool _busy = false;
   String _liveTranscript = '';
   final _speech = SpeechService();
+  final _albums = MediaAlbumService();
   final _picker = ImagePicker();
   final List<String> _segments = [];
 
@@ -87,6 +89,12 @@ class _InspectScreenState extends State<InspectScreen> {
     final s = widget.state.activeSession!;
     s.media.add(MediaItem(id: const Uuid().v4(), type: 'photo', localPath: path));
     await widget.state.saveSession(s);
+    final saved = await _albums.saveMedia(path: path, session: s, isVideo: false);
+    if (mounted && !saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Photo saved in app. Allow Photos access to also save to SpeakEasyReports album.')),
+      );
+    }
     if (mounted) setState(() {});
   }
 
@@ -137,10 +145,19 @@ class _InspectScreenState extends State<InspectScreen> {
       });
       await _camera!.startVideoRecording();
       await Future.delayed(const Duration(milliseconds: 900));
-      await _speech.startListening(onResult: (text, isFinal) {
-        setState(() => _liveTranscript = [..._segments, if (!isFinal) text else ''].where((e) => e.isNotEmpty).join(' '));
-        if (isFinal && text.trim().isNotEmpty) _segments.add(text.trim());
-      });
+      await _speech.startListening(
+        continuous: true,
+        onResult: (text, isFinal) {
+          final parts = [..._segments];
+          if (isFinal && text.trim().isNotEmpty) {
+            _segments.add(text.trim());
+            parts.add(text.trim());
+          } else if (text.trim().isNotEmpty) {
+            parts.add(text.trim());
+          }
+          setState(() => _liveTranscript = parts.where((e) => e.isNotEmpty).join(' '));
+        },
+      );
       setState(() {
         _recording = true;
         _busy = false;
@@ -149,10 +166,13 @@ class _InspectScreenState extends State<InspectScreen> {
     }
 
     setState(() => _busy = true);
-    await _speech.stop();
+    final trailing = await _speech.stop(keepPartial: true);
     final video = await _camera!.stopVideoRecording();
     final s = widget.state.activeSession!;
-    final transcript = [..._segments, _liveTranscript].join(' ').trim();
+    final transcript = [..._segments, _liveTranscript, trailing]
+        .where((part) => part.trim().isNotEmpty)
+        .join(' ')
+        .trim();
     s.media.add(MediaItem(
       id: const Uuid().v4(),
       type: 'video',
@@ -162,10 +182,17 @@ class _InspectScreenState extends State<InspectScreen> {
       recordingEndedAt: DateTime.now().toIso8601String(),
     ));
     await widget.state.saveSession(s);
+    final saved = await _albums.saveMedia(path: video.path, session: s, isVideo: true);
+    if (mounted && !saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Video saved in app. Allow Photos access to also save to SpeakEasyReports album.')),
+      );
+    }
     setState(() {
       _recording = false;
       _busy = false;
       _liveTranscript = '';
+      _segments.clear();
     });
   }
 
@@ -227,7 +254,7 @@ class _InspectScreenState extends State<InspectScreen> {
     final canRecord = _cameraState == _CameraState.ready;
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.clientName.isEmpty ? 'Inspect' : s.clientName)),
+      appBar: AppBar(title: Text(s.projectName.isNotEmpty ? s.projectName : (s.clientName.isEmpty ? 'Inspect' : s.clientName))),
       body: SafeArea(
         child: Column(
           children: [

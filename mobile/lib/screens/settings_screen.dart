@@ -31,14 +31,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _apiUrl = TextEditingController(text: widget.state.settings.apiBaseUrl);
     _inspector = TextEditingController(text: widget.state.settings.inspectorName);
     _company = TextEditingController(text: widget.state.settings.companyName);
+    widget.state.addListener(_onStateChanged);
   }
 
   @override
   void dispose() {
+    widget.state.removeListener(_onStateChanged);
     _apiUrl.dispose();
     _inspector.dispose();
     _company.dispose();
     super.dispose();
+  }
+
+  void _onStateChanged() {
+    final qrUrl = widget.state.lastQrConnectedUrl;
+    if (qrUrl == null) return;
+    _apiUrl.text = qrUrl;
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('PC connected from QR: $qrUrl')),
+    );
+    widget.state.clearQrConnectedBanner();
+    setState(() => _testMsg = 'QR code filled the PC address. Tap Test PC connection.');
   }
 
   Future<void> _save() async {
@@ -59,7 +73,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final ok = await _sync.testConnection(_apiUrl.text.trim());
     setState(() {
       _testing = false;
-      _testMsg = ok ? 'Connected to PC server.' : 'Could not connect. Run SpeakEasy server on PC, same Wi‑Fi.';
+      _testMsg = ok ? 'Connected to PC server.' : 'Could not connect. Run SpeakEasy on PC, same Wi‑Fi.';
     });
   }
 
@@ -105,10 +119,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('SpeakEasy Reports v1.1', style: TextStyle(fontWeight: FontWeight.w700)),
+          const Text('SpeakEasy Reports v1.2', style: TextStyle(fontWeight: FontWeight.w700)),
           const Text('App Store edition', style: TextStyle(color: AppColors.textMuted)),
           const SizedBox(height: 6),
           const Text('© 2026 SpeakEasy Reports', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          const SizedBox(height: 20),
+          const Text('Connect to PC (QR)', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          const Text(
+            'On your PC, open SpeakEasy → Connect iPhone → scan the QR with the iPhone Camera app → tap Open in SpeakEasy Reports. The server address fills in automatically below.',
+            style: TextStyle(color: AppColors.textMuted),
+          ),
           const SizedBox(height: 20),
           const Text('SpeakEasy Server (PC)', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),

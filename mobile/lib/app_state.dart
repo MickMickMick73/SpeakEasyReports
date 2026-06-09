@@ -19,6 +19,7 @@ class AppState extends ChangeNotifier {
   List<InspectionSession> sessions = [];
   InspectionSession? activeSession;
   bool ready = false;
+  String? lastQrConnectedUrl;
 
   Future<void> _init() async {
     settings = await _settingsStore.load();
@@ -30,6 +31,16 @@ class AppState extends ChangeNotifier {
 
   Future<void> saveSettings() async {
     await _settingsStore.save(settings);
+    notifyListeners();
+  }
+
+  void markPcConnectedFromQr(String url) {
+    lastQrConnectedUrl = url;
+    notifyListeners();
+  }
+
+  void clearQrConnectedBanner() {
+    lastQrConnectedUrl = null;
     notifyListeners();
   }
 

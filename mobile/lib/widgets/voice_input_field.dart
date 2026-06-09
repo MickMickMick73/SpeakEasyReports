@@ -36,6 +36,8 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
   String _preview = '';
   bool _listening = false;
   bool _starting = false;
+  bool _keyboardMode = false;
+  int _speechEpoch = 0;
 
   @override
   void initState() {
@@ -51,10 +53,16 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
   void didUpdateWidget(covariant VoiceInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.active && !oldWidget.active) {
-      setState(() => _preview = '');
+      setState(() {
+        _keyboardMode = false;
+        _preview = '';
+      });
+      _focusNode.unfocus();
       _startListening();
     } else if (!widget.active && oldWidget.active) {
       _stopListening(clearPreview: true);
+      setState(() => _keyboardMode = false);
+      _focusNode.unfocus();
     }
   }
 
@@ -69,11 +77,19 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
     return widget.stripSpaces ? text.replaceAll(' ', '') : text;
   }
 
+  int _nextEpoch() {
+    _speechEpoch++;
+    return _speechEpoch;
+  }
+
+  bool _epochValid(int epoch) => mounted && widget.active && epoch == _speechEpoch;
+
   Future<void> _startListening() async {
-    if (!widget.active || _listening || _starting) return;
+    if (!widget.active || _listening || _starting || _keyboardMode) return;
+    final epoch = _nextEpoch();
     setState(() => _starting = true);
     await widget.speech.stop();
-    if (!mounted || !widget.active) {
+    if (!_epochValid(epoch)) {
       if (mounted) setState(() => _starting = false);
       return;
     }
@@ -81,14 +97,21 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
       _listening = true;
       _starting = false;
     });
-    await widget.speech.startListening(onResult: (text, isFinal) {
-      if (!mounted || !widget.active) return;
-      final value = _normalize(text);
-      setState(() => _preview = value);
-    });
+    await widget.speech.startListening(
+      onResult: (text, isFinal) {
+        if (!_epochValid(epoch)) return;
+        final value = _normalize(text);
+        if (value.trim().isEmpty) return;
+        setState(() => _preview = value);
+      },
+    );
+    if (mounted && _epochValid(epoch)) {
+      setState(() => _listening = widget.speech.isListening || _starting);
+    }
   }
 
   Future<void> _stopListening({bool clearPreview = false}) async {
+    _nextEpoch();
     await widget.speech.stop();
     if (!mounted) return;
     setState(() {
@@ -103,43 +126,67 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
     if (trimmed.isEmpty) return;
     final current = widget.controller.text.trim();
     widget.controller.text = current.isEmpty ? trimmed : '$current $trimmed';
-    setState(() => _preview = '');
   }
 
   Future<void> _acceptPreview() async {
-    if (_preview.trim().isNotEmpty) {
-      _commit(_preview);
-      return;
+    final pending = _preview.trim();
+    final trailing = await widget.speech.stop(keepPartial: pending.isEmpty);
+    _nextEpoch();
+    final combined = [pending, trailing].where((part) => part.trim().isNotEmpty).join(' ').trim();
+    if (combined.isNotEmpty) {
+      _commit(combined);
     }
-    if (_listening) {
-      await _stopListening();
-    }
+    if (!mounted) return;
+    setState(() {
+      _preview = '';
+      _listening = false;
+      _starting = false;
+    });
   }
 
   Future<void> _clearField() async {
+    _nextEpoch();
+    await widget.speech.stop();
     widget.controller.clear();
-    setState(() => _preview = '');
-    if (widget.active) {
-      await _startListening();
-    }
+    if (!mounted) return;
+    setState(() {
+      _preview = '';
+      _listening = false;
+      _starting = false;
+      _keyboardMode = false;
+    });
+    _focusNode.unfocus();
   }
 
   Future<void> _openKeyboard() async {
-    await _stopListening();
-    _focusNode.requestFocus();
+    await _stopListening(clearPreview: false);
+    if (!mounted) return;
+    setState(() => _keyboardMode = true);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
   }
 
   void _handleTap() {
     widget.onFocus();
-    if (widget.active && !_listening && !_starting) {
+    if (!widget.active) return;
+    if (_keyboardMode) return;
+    if (!_listening && !_starting) {
       _startListening();
     }
   }
 
+  Widget _micStatusIcon() {
+    final listening = _listening || _starting;
+    final color = listening ? AppColors.success : AppColors.danger;
+    final icon = listening ? Icons.mic : Icons.mic_off;
+    final child = Icon(icon, color: color, size: 20);
+    if (!listening) return child;
+    return FadeTransition(opacity: Tween(begin: 0.55, end: 1.0).animate(_pulse), child: child);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final showMic = widget.active && (_listening || _starting);
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Column(
@@ -148,11 +195,17 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
           Row(
             children: [
               Text(widget.label, style: const TextStyle(fontWeight: FontWeight.w700)),
-              if (showMic) ...[
+              if (widget.active) ...[
                 const SizedBox(width: 8),
-                FadeTransition(
-                  opacity: Tween(begin: 0.45, end: 1.0).animate(_pulse),
-                  child: const Icon(Icons.mic, color: AppColors.primary, size: 18),
+                _micStatusIcon(),
+                const SizedBox(width: 6),
+                Text(
+                  (_listening || _starting) ? 'Recording' : 'Tap field to record',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: (_listening || _starting) ? AppColors.success : AppColors.danger,
+                  ),
                 ),
               ],
             ],
@@ -163,9 +216,13 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
             focusNode: _focusNode,
             keyboardType: widget.keyboardType,
             maxLines: widget.maxLines,
+            readOnly: !_keyboardMode,
+            showCursor: _keyboardMode,
+            enableInteractiveSelection: _keyboardMode,
             onTap: _handleTap,
             decoration: InputDecoration(
-              suffixIcon: showMic ? const Icon(Icons.mic_none, color: AppColors.primary) : null,
+              hintText: widget.active ? 'Tap to speak, or use Keyboard' : null,
+              suffixIcon: widget.active ? _micStatusIcon() : null,
             ),
           ),
           if (widget.active && _preview.isNotEmpty)
@@ -176,7 +233,7 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
               decoration: BoxDecoration(
                 color: AppColors.surfaceAlt,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                border: Border.all(color: AppColors.success.withValues(alpha: 0.45)),
               ),
               child: Text(_preview, style: const TextStyle(color: AppColors.textMuted)),
             ),
@@ -184,11 +241,11 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
             const SizedBox(height: 8),
             Row(
               children: [
-                _toolButton(Icons.check, 'Accept', () => _acceptPreview()),
+                _toolButton(Icons.check, 'Accept', _acceptPreview),
                 const SizedBox(width: 8),
-                _toolButton(Icons.clear, 'Clear', () => _clearField()),
+                _toolButton(Icons.clear, 'Clear', _clearField),
                 const SizedBox(width: 8),
-                _toolButton(Icons.keyboard, 'Keyboard', () => _openKeyboard()),
+                _toolButton(Icons.keyboard, 'Keyboard', _openKeyboard),
               ],
             ),
           ],
@@ -197,10 +254,10 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
     );
   }
 
-  Widget _toolButton(IconData icon, String label, VoidCallback onPressed) {
+  Widget _toolButton(IconData icon, String label, Future<void> Function() onPressed) {
     return Expanded(
       child: OutlinedButton.icon(
-        onPressed: onPressed,
+        onPressed: () => onPressed(),
         icon: Icon(icon, size: 16),
         label: Text(label, style: const TextStyle(fontSize: 12)),
       ),

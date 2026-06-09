@@ -68,6 +68,7 @@ class InspectionSession {
   InspectionSession({
     required this.id,
     required this.inspectionType,
+    this.projectName = '',
     this.clientName = '',
     this.clientEmail = '',
     this.siteAddress = '',
@@ -83,6 +84,7 @@ class InspectionSession {
 
   final String id;
   final InspectionType inspectionType;
+  String projectName;
   String clientName;
   String clientEmail;
   String siteAddress;
@@ -97,6 +99,7 @@ class InspectionSession {
   Map<String, dynamic> toJson() => {
         'id': id,
         'inspectionType': inspectionType.name,
+        'projectName': projectName,
         'clientName': clientName,
         'clientEmail': clientEmail,
         'siteAddress': siteAddress,
@@ -112,6 +115,7 @@ class InspectionSession {
   factory InspectionSession.fromJson(Map<String, dynamic> j) => InspectionSession(
         id: j['id'] as String,
         inspectionType: InspectionType.values.byName(j['inspectionType'] as String? ?? 'general'),
+        projectName: j['projectName'] as String? ?? '',
         clientName: j['clientName'] as String? ?? '',
         clientEmail: j['clientEmail'] as String? ?? '',
         siteAddress: j['siteAddress'] as String? ?? '',
