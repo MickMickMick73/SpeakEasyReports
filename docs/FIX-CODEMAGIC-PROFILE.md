@@ -1,45 +1,53 @@
 # Fix: No matching profiles for com.speakeasy.speakeasyReports
 
-Build **6a279b311de96379218e8897** failed because Codemagic has **no Ad Hoc profile** for SpeakEasy in **Code signing identities**.
+Codemagic needs a profile in **Code signing identities**. Use **Development** (easier than Ad Hoc).
 
-EAS saying "credentials ready" only means **Expo's servers** — Codemagic does not see those files.
+Your iPhone is already registered: **UDID `00008150-001A58110CF1401C`**
 
-## Fix (one time, ~5 minutes)
+Run **`SETUP-Codemagic-Signing.bat`**
 
-Run **`SETUP-Codemagic-Signing.bat`** or follow below.
+## Order matters: Codemagic FIRST, then Apple
 
-### 1. Apple — App ID
+### A. Codemagic — certificate
 
-https://developer.apple.com/account/resources/identifiers/list
+Team settings → **Code signing identities** → **iOS certificates** → **Generate certificate**
 
-- If **`com.speakeasy.speakeasyReports`** is **not** in the list:
-  - **+** → App IDs → App → Explicit → `com.speakeasy.speakeasyReports` → Register
+| Field | Value |
+|-------|-------|
+| Type | **Apple Development** |
+| Reference | `speakeasy-dev` |
+| API key | your integrated key |
 
-### 2. Apple — Ad Hoc profile
+### B. Apple — App ID (if missing)
 
-https://developer.apple.com/account/resources/profiles/list
+https://developer.apple.com/account/resources/identifiers/list → **+** → `com.speakeasy.speakeasyReports`
 
-- **+** → **Ad Hoc** → Continue
-- App ID: **`com.speakeasy.speakeasyReports`**
-- Certificate: **Apple Distribution** (same team as InspectPro, H9PMCU8928)
-- Devices: your **iPhone** (already registered from Expo)
-- Name: `SpeakEasy AdHoc` → Generate
+### C. Apple — Development profile (NOT Ad Hoc)
 
-### 3. Codemagic — fetch into vault
+https://developer.apple.com/account/resources/profiles/add
 
-https://codemagic.io/teams/6a277febc3867daed2847fcf → **Team settings** → **codemagic.yaml settings** → **Code signing identities**
+1. **iOS App Development** → Continue
+2. App ID: **`com.speakeasy.speakeasyReports`**
+3. Certificate: **Apple Development** / **iPhone Developer** (from step A)
+4. Devices: **tick the checkbox** next to your iPhone ← **Generate stays grey without this**
+5. Name: `SpeakEasy Dev` → **Generate** → **Download** (optional)
 
-**iOS certificates** (if empty): **Generate certificate** → Apple Distribution → `speakeasy-dist`
+### Stuck on Generate?
 
-**iOS provisioning profiles** → **Fetch profiles** → under **Ad Hoc profiles** select **`com.speakeasy.speakeasyReports`** → reference `speakeasy-adhoc` → **Download selected**
+| Symptom | Fix |
+|---------|-----|
+| Generate greyed out | Tick **device checkbox** and **certificate** |
+| No Distribution cert | Use **Development** profile instead (step C) |
+| No devices listed | https://developer.apple.com/account/resources/devices/list — add iPhone UDID above |
+| No App ID | Do step B first |
 
-Do **not** use `com.varm.assessment` or `com.varm.ultimauhr`.
+### D. Codemagic — fetch profile
 
-Green checkmark under **Certificate** = good.
+**iOS provisioning profiles** → **Fetch profiles** → **Development profiles** → `com.speakeasy.speakeasyReports` → `speakeasy-dev-profile` → **Download selected**
 
-### 4. Rebuild
+### E. Rebuild
 
-Codemagic → **SpeakEasyReports** → **SpeakEasy Reports iOS** → branch **main** → **Start new build**
+SpeakEasyReports → **SpeakEasy Reports iOS** → **main** → **Start new build**
 
 ## After install
 

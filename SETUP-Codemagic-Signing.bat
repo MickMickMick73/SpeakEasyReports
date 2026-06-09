@@ -1,38 +1,54 @@
 @echo off
 setlocal
-title SpeakEasy - Fix Codemagic signing (5 min)
+title SpeakEasy - Fix Codemagic signing
 set "BUNDLE=com.speakeasy.speakeasyReports"
 
 echo.
-echo  FIX: No matching ad_hoc profile for %BUNDLE%
-echo  =================================================
+echo  SpeakEasy Codemagic signing - EASIER path (Development, not Ad Hoc)
+echo  ====================================================================
 echo.
-echo  EAS has signing on Expo servers. Codemagic needs its OWN copy.
-echo  Do these 3 steps in order (browser tabs will open):
+echo  Your iPhone IS registered: UDID 00008150-001A58110CF1401C
 echo.
-echo  STEP 1 - Create App ID (skip if it already exists in the list)
-echo    developer.apple.com - Identifiers - + - App IDs
-echo    Bundle ID: %BUNDLE%
+echo  DO THIS ORDER (Codemagic FIRST, then Apple):
 echo.
-echo  STEP 2 - Create Ad Hoc profile
-echo    developer.apple.com - Profiles - + - Ad Hoc
-echo    App ID: %BUNDLE%
-echo    Certificate: Apple Distribution (your dist cert)
-echo    Devices: tick your iPhone
-echo    Name: SpeakEasy AdHoc
+echo  [A] CODMAGIC - create certificate (2 min)
+echo      Team settings - Code signing identities - iOS certificates
+echo      Generate certificate
+echo        Type: Apple DEVELOPMENT  (not Distribution - easier)
+echo        Reference: speakeasy-dev
+echo        API key: your integrated key
+echo      Create - upload back if asked
 echo.
-echo  STEP 3 - Load profile into Codemagic
-echo    Team settings - codemagic.yaml settings - Code signing identities
-echo    iOS provisioning profiles - Fetch profiles
-echo    Ad Hoc: pick %BUNDLE% - reference speakeasy-adhoc - Download selected
-echo    (Ignore com.varm.assessment and com.varm.ultimauhr)
+echo  [B] APPLE - App ID (if missing)
+echo      Identifiers - + - App ID - %BUNDLE%
 echo.
-echo  STEP 4 - Re-run build
-echo    SpeakEasyReports - SpeakEasy Reports iOS - main - Start new build
+echo  [C] APPLE - Development profile (NOT Ad Hoc)
+echo      Profiles - + - iOS App DEVELOPMENT
+echo        App: %BUNDLE%
+echo        Cert: Apple DEVELOPMENT (the one from step A or iPhone Developer)
+echo        Devices: TICK THE CHECKBOX next to your iPhone  (required!)
+echo        Name: SpeakEasy Dev
+echo      Generate / Save
 echo.
-start "" "https://developer.apple.com/account/resources/identifiers/list"
-start "" "https://developer.apple.com/account/resources/profiles/list"
+echo  STUCK on Generate? Usually one of these:
+echo    - No certificate ticked
+echo    - No device checkbox ticked (most common)
+echo    - Wrong profile type (use Development not Ad Hoc)
+echo    - App ID %BUNDLE% does not exist yet
+echo.
+echo  [D] CODMAGIC - fetch profile
+echo      iOS provisioning profiles - Fetch profiles
+echo      Development profiles - %BUNDLE% - speakeasy-dev-profile - Download
+echo.
+echo  [E] Rebuild SpeakEasy Reports iOS on main
+echo.
 start "" "https://codemagic.io/teams/6a277febc3867daed2847fcf"
-timeout /t 2 >nul
+timeout /t 1 >nul
+start "" "https://developer.apple.com/account/resources/identifiers/list"
+timeout /t 1 >nul
+start "" "https://developer.apple.com/account/resources/profiles/add"
+timeout /t 1 >nul
+start "" "https://developer.apple.com/account/resources/devices/list"
+timeout /t 1 >nul
 start "" "https://codemagic.io/apps"
 pause
