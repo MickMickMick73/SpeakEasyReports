@@ -129,7 +129,7 @@ class _SessionDetailScreenState extends State<SessionDetailScreen> {
           ),
           const SizedBox(height: 10),
           PrimaryButton(
-            label: 'Share summary',
+            label: 'Share',
             icon: Icons.share,
             onPressed: () => _share.shareReport(s, widget.state.settings, context: context),
             color: AppColors.surfaceAlt,

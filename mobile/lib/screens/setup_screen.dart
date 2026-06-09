@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../app_state.dart';
 import '../services/speech_service.dart';
@@ -33,7 +34,12 @@ class _SetupScreenState extends State<SetupScreen> {
     _address = TextEditingController(text: s.siteAddress);
     _email = TextEditingController(text: s.clientEmail);
     _note = TextEditingController(text: s.jobDescription);
-    _speech.initialize();
+    _speech.initialize().then((_) {
+      if (!mounted) return;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _focus = 'clientName');
+      });
+    });
   }
 
   @override
@@ -46,7 +52,9 @@ class _SetupScreenState extends State<SetupScreen> {
     super.dispose();
   }
 
-  void _setFocus(String key) {
+  Future<void> _setFocus(String key) async {
+    if (_focus == key) return;
+    await _speech.stop();
     setState(() => _focus = key);
   }
 

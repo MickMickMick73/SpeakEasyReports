@@ -84,7 +84,7 @@ class _DeliverScreenState extends State<DeliverScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: PrimaryButton(
-                  label: 'Share summary',
+                  label: 'Share',
                   icon: Icons.share,
                   onPressed: () => _share.shareReport(s, widget.state.settings, context: context),
                   color: AppColors.surfaceAlt,
