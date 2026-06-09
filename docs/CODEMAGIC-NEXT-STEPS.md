@@ -36,14 +36,39 @@ If asked for **Project path**, set: **`mobile`**
 
 ---
 
-## Step 3 — Apple code signing (required)
+## Step 3 — Apple code signing (use your existing API key)
 
-1. Codemagic → **Teams** (or personal settings) → **Code signing identities**
-2. **iOS** → **Add credentials**
-3. Sign in with your **Apple ID** (the one used on your iPhone)
-4. Bundle ID: **`com.speakeasy.speakeasyReports`**
+You already have an App Store Connect API key (`.p8`). Use it in Codemagic — no Apple ID password sign-in.
 
-Free Apple ID = development install (~7 days). Paid Developer ($99/yr) = TestFlight.
+### 3a — Add the API key to Codemagic (skip if already connected)
+
+1. Codemagic → click your **avatar** (bottom-left) → **Personal account settings** / **Team settings**
+2. **Team integrations** → **Developer Portal** → **Manage keys** (or **Connect**)
+3. **Add key** (or pick your existing key if it is already listed)
+4. Enter:
+   - **Key name** — any label, e.g. `SpeakEasy`
+   - **Issuer ID** — from App Store Connect → Users and Access → Integrations → API
+   - **Key ID** — from the same page
+   - **`.p8` file** — your existing downloaded key (only needed once if not already uploaded)
+5. Click **Save**
+
+### 3b — Create signing files for SpeakEasy
+
+Still in **Team settings** → **codemagic.yaml settings** → **Code signing identities**:
+
+1. **iOS certificates** tab → **Generate certificate**
+   - Reference name: `speakeasy-dev`
+   - Type: **Apple Development**
+   - API key: select your existing key
+   - **Create certificate** → if prompted, download once and **upload** it back (Codemagic requirement)
+2. **iOS provisioning profiles** tab → **Fetch profiles**
+   - Select a **Development** profile for **`com.speakeasy.speakeasyReports`**
+   - If none appears: create the bundle ID in [Apple Developer → Identifiers](https://developer.apple.com/account/resources/identifiers/list), then fetch again
+   - Reference name: `speakeasy-dev-profile` → **Download selected**
+
+Green checkmark under **Certificate** on the profile = ready.
+
+`codemagic.yaml` already requests `distribution_type: development` and bundle ID `com.speakeasy.speakeasyReports`.
 
 ---
 
@@ -80,7 +105,8 @@ Free Apple ID = development install (~7 days). Paid Developer ($99/yr) = TestFli
 
 | Error | Fix |
 |-------|-----|
-| Code signing | Step 3 — add Apple ID in Codemagic |
+| Code signing | Step 3 — API key in Developer Portal + cert/profile in Code signing identities |
+| No matching profiles | Create bundle ID `com.speakeasy.speakeasyReports` in Apple Developer, then Fetch profiles again |
 | Pod install | Re-run build (often fixes itself) |
 | Wrong project | Set project path to `mobile` |
 | Bundle ID mismatch | Keep `com.speakeasy.speakeasyReports` |

@@ -1,6 +1,7 @@
 # SpeakEasy Reports — iOS build on cloud Mac (Windows cannot build IPA locally)
 # Setup: https://codemagic.io → connect GitHub repo → enable this workflow
-# Add Apple Developer code signing in Codemagic → Teams → Code signing identities
+# Signing: Team settings → Team integrations → Developer Portal (your existing .p8 API key)
+# Then: codemagic.yaml settings → Code signing identities → generate cert + fetch profile
 
 workflows:
   speakeasy-ios:
@@ -22,8 +23,10 @@ workflows:
         script: |
           cd ios
           pod install
+      - name: Set up code signing settings on Xcode project
+        script: xcode-project use-profiles
       - name: Build iOS IPA
-        script: flutter build ipa --release
+        script: flutter build ipa --release --export-options-plist=ios/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
