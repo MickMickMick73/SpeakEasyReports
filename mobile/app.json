@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "SpeakEasy Reports",
+    "slug": "speakeasy-reports",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "ios": {
+      "bundleIdentifier": "com.speakeasy.speakeasyReports",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "SpeakEasy needs the camera to capture inspection photos and videos.",
+        "NSMicrophoneUsageDescription": "SpeakEasy needs the microphone for voice notes and live captions during video.",
+        "NSSpeechRecognitionUsageDescription": "SpeakEasy uses speech recognition to turn your voice into text during inspections.",
+        "NSPhotoLibraryUsageDescription": "SpeakEasy can attach photos from your library when the camera is unavailable.",
+        "NSLocalNetworkUsageDescription": "Connect to your office PC on the local network for SpeakEasy Link and report sync.",
+        "NSBonjourServices": [
+          "_http._tcp."
+        ],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsLocalNetworking": true
+        }
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "deef5fc9-5325-4ce3-9af7-9d87c984ea68"
+      }
+    },
+    "owner": "mikeykool401"
+  }
+}

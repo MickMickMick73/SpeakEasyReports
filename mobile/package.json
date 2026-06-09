@@ -1,0 +1,8 @@
+{
+  "name": "speakeasy-reports-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "expo": "~52.0.0"
+  }
+}

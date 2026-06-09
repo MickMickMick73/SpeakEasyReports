@@ -1,0 +1,33 @@
+build:
+  name: SpeakEasy Flutter iOS
+  steps:
+    - eas/checkout
+    - eas/install_node_modules
+    - eas/resolve_build_config
+    - eas/resolve_apple_team_id_from_credentials:
+        id: resolve_team
+    - eas/configure_ios_credentials
+    - run:
+        name: Install Flutter SDK
+        command: |
+          if [ ! -d "$HOME/flutter" ]; then
+            git clone https://github.com/flutter/flutter.git -b stable --depth 1 "$HOME/flutter"
+          fi
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter --version
+          flutter precache --ios
+    - run:
+        name: Get Flutter packages
+        command: |
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter pub get
+    - run:
+        name: Install CocoaPods
+        working_directory: ./ios
+        command: pod install
+    - run:
+        name: Build IPA
+        command: |
+          export PATH="$HOME/flutter/bin:$PATH"
+          flutter build ipa --release --export-options-plist=ios/export_options.plist
+    - eas/find_and_upload_build_artifacts
