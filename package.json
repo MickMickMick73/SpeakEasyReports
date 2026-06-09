@@ -1,0 +1,20 @@
+{
+  "name": "speakeasyreports",
+  "version": "1.0.0",
+  "description": "Migration of **InspectPro Mobile v3.2.1** to **FlutterFlow** + a polished **Windows desktop** app for PC sync.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "flutterflow:browser": "node scripts/flutterflow-browser.mjs",
+    "flutterflow:open-account": "start https://app.flutterflow.io/account"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "playwright": "^1.60.0"
+  }
+}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpeakEasy Reports</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">SE</div>
+        <div>
+          <h1>SpeakEasy</h1>
+          <p>Reports Desktop</p>
+        </div>
+      </div>
+      <nav>
+        <button class="nav-btn active" data-view="connect">Connect phone</button>
+        <button class="nav-btn" data-view="link">SpeakEasy Link</button>
+        <button class="nav-btn" data-view="reports">Synced reports</button>
+        <button class="nav-btn" data-view="help">Setup guide</button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="status-pill" id="serverStatus">Starting server…</div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <section id="view-connect" class="view active">
+        <header class="page-header">
+          <h2>Connect your phone</h2>
+          <p>Same network as this PC. Scan QR for the Connect Hub, then paste the API URL into your phone app Settings.</p>
+        </header>
+
+        <div class="grid-2">
+          <div class="panel">
+            <h3>API URL for phone</h3>
+            <div class="url-box" id="apiUrl">Loading…</div>
+            <div class="btn-row">
+              <button class="btn primary" id="copyUrlBtn">Copy URL</button>
+              <button class="btn" id="testBtn">Test connection</button>
+              <button class="btn" id="restartBtn">Restart server</button>
+            </div>
+            <p class="hint" id="testResult"></p>
+          </div>
+
+          <div class="panel center">
+            <h3>Scan on iPhone</h3>
+            <img id="qrImage" alt="QR code" class="qr" />
+            <p class="hint">Opens LAN Connect Hub — copy URL, test health, works with InspectPro or SpeakEasy.</p>
+          </div>
+        </div>
+
+        <div class="steps-card">
+          <h3>Quick setup</h3>
+          <ol>
+            <li>Launch your field app (<strong>InspectPro</strong> or <strong>SpeakEasy</strong>).</li>
+            <li>Go to <strong>Settings</strong> → <strong>API base URL</strong> / <strong>Office PC URL</strong>.</li>
+            <li>Paste the API URL above → tap <strong>Test connection</strong>.</li>
+            <li>Complete an inspection → <strong>Push to PC</strong> on the Done screen.</li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="view-link" class="view">
+        <header class="page-header">
+          <h2>SpeakEasy Link</h2>
+          <p>Standalone bridge — test connection, push files, edit shared notes. No inspection required.</p>
+        </header>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Phone app (open in Safari)</h3>
+            <div class="url-box" id="linkUrl">Loading…</div>
+            <p class="hint">Add to Home Screen on iPhone for a quick app icon. Works with any field app later.</p>
+            <div class="btn-row">
+              <button class="btn primary" id="openLinkBtn">Open link page</button>
+              <button class="btn" id="openLinkFolderBtn">Open shared folder</button>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Link status</h3>
+            <p id="linkStatus" class="hint">Checking…</p>
+            <p class="hint">Shared folder: <code>link-share/</code> on your Desktop project.</p>
+          </div>
+        </div>
+        <div class="panel table-panel">
+          <h3>Shared files</h3>
+          <table>
+            <thead><tr><th>File</th><th>Size</th><th>Modified</th></tr></thead>
+            <tbody id="linkFilesBody"><tr><td colspan="3" class="empty">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="view-reports" class="view">
+        <header class="page-header row">
+          <div>
+            <h2>Synced reports</h2>
+            <p>Reports appear here after you push from the phone.</p>
+          </div>
+          <div class="btn-row">
+            <button class="btn" id="refreshReportsBtn">Refresh</button>
+            <button class="btn" id="openFolderBtn">Open reports folder</button>
+            <button class="btn primary" id="openWebBtn">Open in browser</button>
+          </div>
+        </header>
+        <div class="panel table-panel">
+          <table>
+            <thead>
+              <tr>
+                <th>Client / job</th>
+                <th>Site</th>
+                <th>Type</th>
+                <th>Generated</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="reportsBody">
+              <tr><td colspan="5" class="empty">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="view-help" class="view">
+        <header class="page-header">
+          <h2>FlutterFlow app checklist</h2>
+          <p>Full InspectPro v3.2.1 feature parity — see <code>docs/FLUTTERFLOW-GUIDE.md</code> on Desktop.</p>
+        </header>
+        <div class="panel">
+          <ul class="checklist">
+            <li>✓ Job details + speak-to-type (on-device speech)</li>
+            <li>✓ Camera: photo, video, live captions while recording</li>
+            <li>✓ Review → generate PDF + HTML on phone</li>
+            <li>✓ Email share + Push to PC (this app)</li>
+            <li>✓ History + settings (company profile, templates)</li>
+            <li>✓ Dark high-contrast UI, large touch targets</li>
+            <li>✓ PC Whisper transcript on video after push</li>
+          </ul>
+          <p class="hint">Custom Dart actions are in <code>flutterflow/custom_actions/</code>.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

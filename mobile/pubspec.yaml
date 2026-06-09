@@ -1,0 +1,33 @@
+name: speakeasy_reports
+description: SpeakEasy Reports — field inspections with voice, video, and PC sync.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  speech_to_text: ^7.0.0
+  permission_handler: ^11.3.1
+  camera: ^0.11.0+2
+  image_picker: ^1.1.2
+  http: ^1.2.2
+  crypto: ^3.0.6
+  shared_preferences: ^2.3.3
+  path_provider: ^2.1.5
+  uuid: ^4.5.1
+  share_plus: ^10.1.2
+  pdf: ^3.11.1
+  printing: ^5.13.4
+  intl: ^0.20.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,24 @@
+# Dependencies
+**/node_modules/
+api/data/
+reports/
+link-share/*
+!link-share/shared-notes.md
+!link-share/.gitkeep
+
+# Flutter / Dart
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins-dependencies
+
+# Do not commit the bundled Flutter SDK (very large)
+tools/flutter/
+
+# Desktop / API secrets
+.env
+.flutterflow-token
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

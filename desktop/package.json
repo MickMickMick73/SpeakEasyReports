@@ -1,0 +1,14 @@
+{
+  "name": "speakeasy-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "dependencies": {
+    "electron": "^34.0.0",
+    "qrcode": "^1.5.4"
+  }
+}
