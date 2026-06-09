@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
 import '../models/session.dart';
+import '../models/settings.dart';
 
 class SyncService {
   Future<bool> testConnection(String apiBaseUrl) async {
@@ -24,9 +25,9 @@ class SyncService {
     }
   }
 
-  Future<Map<String, dynamic>> pushSession(InspectionSession session, String apiBaseUrl) async {
-    final base = _normalize(apiBaseUrl);
-    final manifest = _buildManifest(session);
+  Future<Map<String, dynamic>> pushSession(InspectionSession session, AppSettings settings) async {
+    final base = _normalize(settings.apiBaseUrl);
+    final manifest = _buildManifest(session, settings);
     final files = <Map<String, dynamic>>[];
 
     for (final item in session.media) {
@@ -91,20 +92,21 @@ class SyncService {
     return jsonDecode(manifestRes.body) as Map<String, dynamic>;
   }
 
-  Map<String, dynamic> _buildManifest(InspectionSession session) {
+  Map<String, dynamic> _buildManifest(InspectionSession session, AppSettings settings) {
     final manifest = <String, dynamic>{
       'sessionId': session.id,
-      'vehicleId': session.jobReference,
-      'jobReference': session.jobReference.isEmpty ? session.clientName : session.jobReference,
+      'vehicleId': session.clientName,
+      'jobReference': session.clientName,
       'inspectionType': session.inspectionType.name,
       'clientName': session.clientName,
       'clientEmail': session.clientEmail,
       'siteAddress': session.siteAddress,
+      'companyName': settings.companyName,
       'reportFields': {
         'jobDescription': session.jobDescription,
         'summary': session.jobDescription,
       },
-      'technicianName': '',
+      'technicianName': settings.inspectorName,
       'deviceId': 'flutter',
       'deviceModel': 'SpeakEasy Flutter',
       'appVersion': '1.0.0',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_state.dart';
-import 'screens/home_shell.dart';
+import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -36,7 +36,7 @@ class _SpeakEasyAppState extends State<SpeakEasyApp> {
           title: 'SpeakEasy Reports',
           debugShowCheckedModeBanner: false,
           theme: buildAppTheme(dark: _state.settings.appearanceDark),
-          home: HomeShell(state: _state),
+          home: SplashScreen(state: _state),
         );
       },
     );

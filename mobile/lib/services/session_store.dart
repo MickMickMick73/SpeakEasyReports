@@ -46,4 +46,15 @@ class SessionStore {
     }
     await saveAll(all);
   }
+
+  Future<void> delete(String sessionId) async {
+    final all = await loadAll();
+    all.removeWhere((s) => s.id == sessionId);
+    await saveAll(all);
+  }
+
+  Future<void> deleteAll() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+  }
 }

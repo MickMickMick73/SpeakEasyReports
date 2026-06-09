@@ -1,7 +1,7 @@
 name: speakeasy_reports
 description: SpeakEasy Reports — field inspections with voice, video, and PC sync.
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.12.1
@@ -23,6 +23,10 @@ dependencies:
   pdf: ^3.11.1
   printing: ^5.13.4
   intl: ^0.20.2
+  url_launcher: ^6.3.1
+  qr_flutter: ^4.1.0
+  webview_flutter: ^4.10.0
+  flutter_email_sender: ^7.0.0
 
 dev_dependencies:
   flutter_test:
@@ -31,3 +35,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/splash/
+    - assets/splash/candidates/

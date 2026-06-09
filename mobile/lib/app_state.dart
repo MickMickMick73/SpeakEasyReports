@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 
 import 'models/session.dart';
@@ -44,6 +46,42 @@ class AppState extends ChangeNotifier {
       activeSession = session;
       await _sessionStore.saveActive(session);
     }
+    notifyListeners();
+  }
+
+  Future<void> deleteSession(String sessionId) async {
+    final matches = sessions.where((s) => s.id == sessionId);
+    if (matches.isNotEmpty) {
+      final session = matches.first;
+      for (final media in session.media) {
+        final file = File(media.localPath);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+    }
+    await _sessionStore.delete(sessionId);
+    if (activeSession?.id == sessionId) {
+      activeSession = null;
+      await _sessionStore.saveActive(null);
+    }
+    sessions = await _sessionStore.loadAll();
+    notifyListeners();
+  }
+
+  Future<void> deleteAllSessions() async {
+    for (final session in sessions) {
+      for (final media in session.media) {
+        final file = File(media.localPath);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+    }
+    await _sessionStore.deleteAll();
+    activeSession = null;
+    await _sessionStore.saveActive(null);
+    sessions = [];
     notifyListeners();
   }
 }

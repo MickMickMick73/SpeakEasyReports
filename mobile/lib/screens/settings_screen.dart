@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../app_state.dart';
 import '../services/sync_service.dart';
 import '../theme/app_theme.dart';
+
+const _itchUrl = 'https://mickeykool401.itch.io/SpeakEasyServer';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key, required this.state});
@@ -19,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _inspector;
   late final TextEditingController _company;
   String _testMsg = '';
+  bool _testing = false;
 
   @override
   void initState() {
@@ -47,27 +52,110 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _test() async {
-    setState(() => _testMsg = 'Testing…');
+    setState(() {
+      _testing = true;
+      _testMsg = 'Testing…';
+    });
     final ok = await _sync.testConnection(_apiUrl.text.trim());
-    setState(() => _testMsg = ok ? 'Connected to PC server.' : 'Could not connect. Run SpeakEasy-PC.bat, same Wi‑Fi.');
+    setState(() {
+      _testing = false;
+      _testMsg = ok ? 'Connected to PC server.' : 'Could not connect. Run SpeakEasy server on PC, same Wi‑Fi.';
+    });
+  }
+
+  Future<void> _openItch() async {
+    final uri = Uri.parse(_itchUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not open link.')));
+      }
+    }
+  }
+
+  Future<void> _deleteAll() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete all inspection history?'),
+        content: const Text(
+          'This permanently removes all saved reports and media from this phone. Synced copies on your PC are not affected. This cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.danger),
+            child: const Text('Delete all'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await widget.state.deleteAllSessions();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All inspections deleted from this phone.')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final connected = _testMsg.contains('Connected');
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('SpeakEasy Reports v1.0.0 — free Flutter edition', style: TextStyle(color: AppColors.textMuted)),
+          const Text('SpeakEasy Reports v1.0', style: TextStyle(fontWeight: FontWeight.w700)),
+          const Text('App Store edition', style: TextStyle(color: AppColors.textMuted)),
+          const SizedBox(height: 6),
+          const Text('© 2026 SpeakEasy Reports', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+          const SizedBox(height: 20),
+          const Text('SpeakEasy Server (PC)', style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Download from itch.io'),
+            subtitle: Text(_itchUrl, style: TextStyle(color: AppColors.primary, fontSize: 13)),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: _openItch,
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: QrImageView(
+                data: _itchUrl,
+                version: QrVersions.auto,
+                size: 160,
+                backgroundColor: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text('Scan this QR on your PC to open the server download page.', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
           const SizedBox(height: 20),
           const Text('Office PC URL', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           TextField(controller: _apiUrl, decoration: const InputDecoration(hintText: 'http://192.168.1.110:3001')),
-          const Text('Run SpeakEasy-Link.bat on PC. Same URL for inspections + Link.', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
           const SizedBox(height: 10),
-          OutlinedButton(onPressed: _test, child: const Text('Test PC connection')),
-          if (_testMsg.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_testMsg, style: TextStyle(color: _testMsg.contains('Connected') ? AppColors.success : AppColors.warning))),
+          Row(
+            children: [
+              OutlinedButton(onPressed: _testing ? null : _test, child: Text(_testing ? 'Testing…' : 'Test PC connection')),
+              const SizedBox(width: 12),
+              if (_testMsg.isNotEmpty)
+                Icon(connected ? Icons.check_circle : Icons.error_outline, color: connected ? AppColors.success : AppColors.warning),
+            ],
+          ),
+          if (_testMsg.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(_testMsg, style: TextStyle(color: connected ? AppColors.success : AppColors.warning)),
+            ),
           const SizedBox(height: 20),
           const Text('Inspector name', style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
@@ -88,6 +176,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 16),
           ElevatedButton(onPressed: _save, child: const Text('Save settings')),
+          const SizedBox(height: 32),
+          const Text('Danger zone', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.danger)),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: _deleteAll,
+            style: OutlinedButton.styleFrom(foregroundColor: AppColors.danger, side: const BorderSide(color: AppColors.danger)),
+            child: const Text('Delete all inspection history'),
+          ),
         ],
       ),
     );

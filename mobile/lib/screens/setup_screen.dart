@@ -4,6 +4,7 @@ import '../app_state.dart';
 import '../services/speech_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/voice_input_field.dart';
 import 'inspect_screen.dart';
 
 class SetupScreen extends StatefulWidget {
@@ -17,8 +18,6 @@ class SetupScreen extends StatefulWidget {
 
 class _SetupScreenState extends State<SetupScreen> {
   final _speech = SpeechService();
-  String _preview = '';
-  bool _listening = false;
   String _focus = 'clientName';
 
   late final TextEditingController _name;
@@ -47,36 +46,8 @@ class _SetupScreenState extends State<SetupScreen> {
     super.dispose();
   }
 
-  void _append(String text) {
-    switch (_focus) {
-      case 'clientName':
-        _name.text = _name.text.trim().isEmpty ? text : '${_name.text.trim()} $text';
-      case 'siteAddress':
-        _address.text = _address.text.trim().isEmpty ? text : '${_address.text.trim()} $text';
-      case 'clientEmail':
-        _email.text = _email.text.trim().isEmpty ? text : '${_email.text.trim()} $text';
-      default:
-        _note.text = _note.text.trim().isEmpty ? text : '${_note.text.trim()} $text';
-    }
-    setState(() {});
-  }
-
-  Future<void> _toggleSpeak() async {
-    if (_listening) {
-      await _speech.stop();
-      setState(() => _listening = false);
-      return;
-    }
-    setState(() {
-      _listening = true;
-      _preview = '';
-    });
-    await _speech.startListening(onResult: (text, isFinal) {
-      setState(() => _preview = text);
-      if (isFinal && text.trim().isNotEmpty) {
-        _append(text.trim());
-      }
-    });
+  void _setFocus(String key) {
+    setState(() => _focus = key);
   }
 
   Future<void> _continue() async {
@@ -86,6 +57,7 @@ class _SetupScreenState extends State<SetupScreen> {
       );
       return;
     }
+    await _speech.stop();
     final s = widget.state.activeSession!;
     s.clientName = _name.text.trim();
     s.siteAddress = _address.text.trim();
@@ -104,55 +76,41 @@ class _SetupScreenState extends State<SetupScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text('Tap a field, type, or use Speak.', style: TextStyle(color: AppColors.textMuted)),
+          const Text('Tap a field to start speaking, or use the keyboard for typing.', style: TextStyle(color: AppColors.textMuted)),
           const SizedBox(height: 16),
-          _field('Client name *', _name, 'clientName'),
-          _field('Site address *', _address, 'siteAddress'),
-          _field('Email', _email, 'clientEmail', keyboard: TextInputType.emailAddress),
-          _field('Job note', _note, 'jobDescription', lines: 3),
-          const SizedBox(height: 12),
-          ElevatedButton.icon(
-            onPressed: _toggleSpeak,
-            icon: Icon(_listening ? Icons.stop : Icons.mic),
-            label: Text(_listening ? 'Listening… tap to stop' : 'Tap to speak into this field'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _listening ? AppColors.danger : AppColors.primary,
-              minimumSize: const Size.fromHeight(56),
-            ),
+          VoiceInputField(
+            label: 'Client name *',
+            controller: _name,
+            speech: _speech,
+            active: _focus == 'clientName',
+            onFocus: () => _setFocus('clientName'),
           ),
-          if (_preview.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: AppColors.surfaceAlt,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Text(_preview),
-            ),
+          VoiceInputField(
+            label: 'Site address *',
+            controller: _address,
+            speech: _speech,
+            active: _focus == 'siteAddress',
+            onFocus: () => _setFocus('siteAddress'),
+          ),
+          VoiceInputField(
+            label: 'Email',
+            controller: _email,
+            speech: _speech,
+            keyboardType: TextInputType.emailAddress,
+            stripSpaces: true,
+            active: _focus == 'clientEmail',
+            onFocus: () => _setFocus('clientEmail'),
+          ),
+          VoiceInputField(
+            label: 'Job note',
+            controller: _note,
+            speech: _speech,
+            maxLines: 3,
+            active: _focus == 'jobDescription',
+            onFocus: () => _setFocus('jobDescription'),
+          ),
           const SizedBox(height: 24),
           PrimaryButton(label: 'Start inspection', icon: Icons.arrow_forward, onPressed: _continue),
-        ],
-      ),
-    );
-  }
-
-  Widget _field(String label, TextEditingController c, String key, {TextInputType? keyboard, int lines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: c,
-            keyboardType: keyboard,
-            maxLines: lines,
-            onTap: () => setState(() => _focus = key),
-            onChanged: (_) => setState(() => _focus = key),
-          ),
         ],
       ),
     );

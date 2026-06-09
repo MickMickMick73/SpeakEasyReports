@@ -2,21 +2,54 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../models/session.dart';
+import '../services/sync_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primary_button.dart';
 import 'inspection_flow.dart';
+import 'session_detail_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key, required this.state});
 
   final AppState state;
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final _sync = SyncService();
+  String? _pushingId;
+
+  Future<void> _pushSession(InspectionSession session) async {
+    setState(() => _pushingId = session.id);
+    try {
+      await _sync.pushSession(session, widget.state.settings);
+      session.syncStatus = SyncStatus.complete;
+      session.syncError = null;
+    } catch (e) {
+      session.syncStatus = SyncStatus.failed;
+      session.syncError = e.toString();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Push failed: $e')));
+      }
+    }
+    await widget.state.saveSession(session);
+    if (mounted) setState(() => _pushingId = null);
+  }
+
+  void _openSession(InspectionSession session) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => SessionDetailScreen(state: widget.state, sessionId: session.id)),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: state,
+      listenable: widget.state,
       builder: (context, _) {
-        final count = state.sessions.length;
+        final count = widget.state.sessions.length;
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -44,28 +77,36 @@ class DashboardScreen extends StatelessWidget {
                         label: 'New job',
                         icon: Icons.add_circle_outline,
                         onPressed: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => InspectionFlow(state: state)),
+                          MaterialPageRoute(builder: (_) => InspectionFlow(state: widget.state)),
                         ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (state.sessions.isNotEmpty) ...[
+                if (widget.state.sessions.isNotEmpty) ...[
                   const Text('Recent', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
                   const SizedBox(height: 10),
                   Expanded(
                     child: ListView.builder(
-                      itemCount: state.sessions.take(5).length,
+                      itemCount: widget.state.sessions.take(5).length,
                       itemBuilder: (context, i) {
-                        final s = state.sessions[i];
+                        final s = widget.state.sessions[i];
+                        final pushing = _pushingId == s.id;
                         return ListTile(
+                          onTap: () => _openSession(s),
                           title: Text(s.clientName.isEmpty ? 'Untitled' : s.clientName, style: const TextStyle(fontWeight: FontWeight.w700)),
                           subtitle: Text(s.siteAddress),
-                          trailing: Icon(
-                            s.syncStatus == SyncStatus.complete ? Icons.cloud_done : Icons.cloud_upload_outlined,
-                            color: s.syncStatus == SyncStatus.complete ? AppColors.success : AppColors.textMuted,
-                          ),
+                          trailing: pushing
+                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                              : IconButton(
+                                  tooltip: 'Push to PC',
+                                  onPressed: () => _pushSession(s),
+                                  icon: Icon(
+                                    s.syncStatus == SyncStatus.complete ? Icons.cloud_done : Icons.cloud_upload_outlined,
+                                    color: s.syncStatus == SyncStatus.complete ? AppColors.success : AppColors.textMuted,
+                                  ),
+                                ),
                         );
                       },
                     ),
