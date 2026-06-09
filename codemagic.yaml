@@ -24,9 +24,13 @@ workflows:
           cd ios
           pod install
       - name: Set up code signing settings on Xcode project
-        script: xcode-project use-profiles
+        script: |
+          xcode-project use-profiles \
+            --project ios/Runner.xcodeproj \
+            --archive-method development \
+            --export-options-plist $HOME/export_options.plist
       - name: Build iOS IPA
-        script: flutter build ipa --release --export-options-plist=ios/export_options.plist
+        script: flutter build ipa --release --export-options-plist=$HOME/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
