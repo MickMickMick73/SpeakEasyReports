@@ -57,18 +57,20 @@ You already have an App Store Connect API key (`.p8`). Use it in Codemagic — n
 Still in **Team settings** → **codemagic.yaml settings** → **Code signing identities**:
 
 1. **iOS certificates** tab → **Generate certificate**
-   - Reference name: `speakeasy-dev`
-   - Type: **Apple Development**
-   - API key: select your existing key
-   - **Create certificate** → if prompted, download once and **upload** it back (Codemagic requirement)
-2. **iOS provisioning profiles** tab → **Fetch profiles**
-   - Select a **Development** profile for **`com.speakeasy.speakeasyReports`**
-   - If none appears: create the bundle ID in [Apple Developer → Identifiers](https://developer.apple.com/account/resources/identifiers/list), then fetch again
-   - Reference name: `speakeasy-dev-profile` → **Download selected**
+   - Reference name: `speakeasy-dist`
+   - Type: **Apple Distribution** (needed for Ad Hoc / Diawi install — same as Expo preview builds)
+   - API key: your new integrated key
+   - **Create certificate** → if prompted, download once and **upload** it back
+2. Create SpeakEasy on Apple Developer (required before a profile appears):
+   - [Identifiers](https://developer.apple.com/account/resources/identifiers/list) → **+** → App ID → `com.speakeasy.speakeasyReports`
+   - [Profiles](https://developer.apple.com/account/resources/profiles/list) → **+** → **Ad Hoc** → pick `com.speakeasy.speakeasyReports` → your Distribution cert → your iPhone (already registered from Expo)
+3. **iOS provisioning profiles** tab → **Fetch profiles**
+   - Under **Ad Hoc profiles**, select **`com.speakeasy.speakeasyReports`** (ignore `com.varm.assessment` / `com.varm.ultimauhr` — those are old apps)
+   - Reference name: `speakeasy-adhoc-profile` → **Download selected**
 
 Green checkmark under **Certificate** on the profile = ready.
 
-`codemagic.yaml` already requests `distribution_type: development` and bundle ID `com.speakeasy.speakeasyReports`.
+`codemagic.yaml` requests `distribution_type: ad_hoc` and bundle ID `com.speakeasy.speakeasyReports`.
 
 ---
 
