@@ -10,12 +10,8 @@ echo.
 echo  EAS signing is DONE. Expo free iOS builds reset on 1 Jul 2026.
 echo  Codemagic still has free build minutes this month.
 echo.
-echo  ONE-TIME in Codemagic (if not done yet):
-echo    Team settings - codemagic.yaml settings - Code signing identities
-echo    1. Generate Apple Distribution certificate (speakeasy-dist)
-echo    2. Create App ID com.speakeasy.speakeasyReports on developer.apple.com
-echo    3. Create Ad Hoc profile for that bundle ID
-echo    4. Fetch profile in Codemagic - Download selected
+echo  Build failed? Run SETUP-Codemagic-Signing.bat first (5 min one-time).
+echo  Guide: docs\FIX-CODEMAGIC-PROFILE.md
 echo.
 echo  THEN start build:
 echo    https://codemagic.io/apps
