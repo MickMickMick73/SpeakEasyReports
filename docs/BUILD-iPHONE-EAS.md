@@ -35,4 +35,6 @@ Then in the app: **Settings** → `http://YOUR-PC-IP:3001` (with **SpeakEasy-Lin
 
 ## Credits
 
-EAS uses build minutes from your Expo plan. If you hit the credit wall again, wait for reset or use Codemagic (`docs/CODEMAGIC-NEXT-STEPS.md`) as backup.
+Free plan iOS builds reset monthly. If you see *"used its iOS builds from the Free plan this month"*, use **Codemagic** until reset (`docs/CODEMAGIC-NEXT-STEPS.md`) or upgrade at https://expo.dev/accounts/mikeykool401/settings/billing.
+
+Signing is already set up for `com.speakeasy.speakeasyReports` — once credits are back, re-run `BUILD-iPhone-EAS.bat` (no signing setup needed again).
