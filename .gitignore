@@ -18,6 +18,10 @@ tools/flutter/
 .env
 .flutterflow-token
 *.log
+codemagic-signing-env.txt
+*.p12
+*.pem
+*.mobileprovision
 
 # OS
 .DS_Store

@@ -1,9 +1,9 @@
-# SpeakEasy Reports — iOS build + TestFlight upload
-# Signing setup: run SETUP-Codemagic-Signing.bat (TestFlight / App Store path)
-# Prerequisites:
-#   1. Team integrations → Developer Portal → App Store Connect API key (App Manager)
-#   2. Code signing → speakeasy-dist cert + speakeasy-appstore-profile (see SETUP bat)
-#   3. App Store Connect → app record for com.speakeasy.speakeasyReports
+# SpeakEasy Reports — iOS build + TestFlight (automatic code signing)
+# One-time setup in Codemagic app Environment variables:
+#   Group: code-signing
+#   CERTIFICATE_PRIVATE_KEY = contents of SpeakEasy_distribution_private_key.pem
+#   (see SETUP-Codemagic-AutoSigning.bat)
+# Team integration "SpeakEasy" must be connected under Developer Portal.
 
 workflows:
   speakeasy-ios:
@@ -14,19 +14,17 @@ workflows:
     integrations:
       app_store_connect: SpeakEasy
     environment:
+      groups:
+        - code-signing
+      vars:
+        BUNDLE_ID: com.speakeasy.speakeasyReports
       flutter: stable
       xcode: latest
       cocoapods: default
-      ios_signing:
-        provisioning_profiles:
-          - speakeasy-appstore-profile
-        certificates:
-          - speakeasy-dist
     scripts:
       - name: Verify iOS bundle ID
         script: |
           set -e
-          BUNDLE_ID="com.speakeasy.speakeasyReports"
           if ! grep -q "PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};" ios/Runner.xcodeproj/project.pbxproj; then
             echo "ERROR: ios/Runner.xcodeproj must use ${BUNDLE_ID}"
             exit 1
@@ -38,6 +36,16 @@ workflows:
         script: |
           cd ios
           pod install
+      - name: Set up keychain for code signing
+        script: keychain initialize
+      - name: Fetch signing files from App Store Connect
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --strict-match-identifier \
+            --platform IOS
+      - name: Add signing certificates to keychain
+        script: keychain add-certificates
       - name: Set up code signing settings on Xcode project
         script: |
           xcode-project use-profiles \
@@ -52,6 +60,3 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        # Uncomment and set your TestFlight group names from App Store Connect:
-        # beta_groups:
-        #   - Internal Testers
