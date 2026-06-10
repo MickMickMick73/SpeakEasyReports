@@ -1,7 +1,7 @@
 name: speakeasy_reports
 description: SpeakEasy Reports — field inspections with voice, video, and PC sync.
 publish_to: 'none'
-version: 3.14.0+14
+version: 3.14.0+15
 
 environment:
   sdk: ^3.12.1
@@ -31,7 +31,6 @@ dependencies:
   gal: ^2.3.0
   connectivity_plus: ^6.1.4
   mobile_scanner: ^7.0.1
-  video_compress: ^3.1.4
   flutter_image_compress: ^2.4.0
   video_player: ^2.10.0
 

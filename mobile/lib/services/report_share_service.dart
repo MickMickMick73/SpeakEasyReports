@@ -77,7 +77,6 @@ class ReportShareService {
       builder: (ctx) => ValueListenableBuilder<_PrepareState>(
         valueListenable: prepareState,
         builder: (_, state, __) {
-          final remaining = (state.maxSeconds - state.elapsedSeconds).clamp(0, state.maxSeconds);
           return AlertDialog(
             title: const Text('Preparing email'),
             content: Column(
@@ -96,11 +95,10 @@ class ReportShareService {
                   '${state.elapsedSeconds}s elapsed · up to ${state.maxSeconds}s',
                   style: Theme.of(ctx).textTheme.bodySmall,
                 ),
-                if (remaining < state.maxSeconds)
-                  Text(
-                    'Will continue without video if not ready in ${remaining}s',
-                    style: Theme.of(ctx).textTheme.bodySmall,
-                  ),
+                Text(
+                  'Large videos are omitted from email — use Push to PC for full video.',
+                  style: Theme.of(ctx).textTheme.bodySmall,
+                ),
               ],
             ),
           );
@@ -136,7 +134,7 @@ class ReportShareService {
       final subject = ReportBuilder.buildEmailSubject(session, settings);
       var body = ReportBuilder.buildEmailBody(session, settings);
       if (packed.videoOmitted) {
-        body += '\n\nNote: Video was omitted from this email (compression took too long). Use Push to PC for full video.';
+        body += '\n\nNote: Video was omitted from this email (over 22 MB). Use Push to PC for full video.';
       }
       if (packed.skippedVideoCount > 0) {
         body += '\n\nNote: Only 1 video attaches to email. ${packed.skippedVideoCount} extra video(s) — use Push to PC.';
