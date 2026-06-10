@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+enum ConnectionMode { lan, hotspot, cellular }
+
 class AppSettings {
   AppSettings({
     this.inspectorName = '',
@@ -13,6 +15,7 @@ class AppSettings {
     this.localServerEnabled = true,
     this.appearanceDark = true,
     this.useBigKeyboard = true,
+    this.preferredConnectionMode = ConnectionMode.lan,
   });
 
   String inspectorName;
@@ -25,6 +28,7 @@ class AppSettings {
   bool localServerEnabled;
   bool appearanceDark;
   bool useBigKeyboard;
+  ConnectionMode preferredConnectionMode;
 
   Map<String, dynamic> toJson() => {
         'inspectorName': inspectorName,
@@ -37,6 +41,7 @@ class AppSettings {
         'localServerEnabled': localServerEnabled,
         'appearanceDark': appearanceDark,
         'useBigKeyboard': useBigKeyboard,
+        'preferredConnectionMode': preferredConnectionMode.name,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> j) => AppSettings(
@@ -51,6 +56,9 @@ class AppSettings {
         localServerEnabled: j['localServerEnabled'] as bool? ?? true,
         appearanceDark: j['appearanceDark'] as bool? ?? true,
         useBigKeyboard: j['useBigKeyboard'] as bool? ?? true,
+        preferredConnectionMode: ConnectionMode.values.byName(
+          j['preferredConnectionMode'] as String? ?? 'lan',
+        ),
       );
 
   static AppSettings decode(String raw) => AppSettings.fromJson(jsonDecode(raw) as Map<String, dynamic>);

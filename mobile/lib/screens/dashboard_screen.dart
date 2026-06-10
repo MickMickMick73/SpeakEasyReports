@@ -49,6 +49,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return ListenableBuilder(
       listenable: widget.state,
       builder: (context, _) {
+        final p = AppPalette.of(context);
         final count = widget.state.sessions.length;
         return SafeArea(
           child: Padding(
@@ -58,15 +59,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text('SpeakEasy Reports', style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 8),
-                Text('Voice notes, photos, video — sync to your PC.', style: TextStyle(color: AppColors.textMuted, fontSize: 16)),
+                Text('Voice notes, photos, video — sync to your PC.', style: TextStyle(color: p.textMuted, fontSize: 16)),
                 const SizedBox(height: 28),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: p.surface,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.border, width: 2),
+                    border: Border.all(color: p.border, width: 2),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +86,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 20),
                 if (widget.state.sessions.isNotEmpty) ...[
-                  const Text('Recent', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                  Text('Recent', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: p.primary)),
                   const SizedBox(height: 10),
                   Expanded(
                     child: ListView.builder(
@@ -95,13 +96,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         final pushing = _pushingId == s.id;
                         return ListTile(
                           onTap: () => _openSession(s),
-                          title: Text(
-                            s.projectName.isNotEmpty
-                                ? s.projectName
-                                : (s.clientName.isEmpty ? 'Untitled' : s.clientName),
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          subtitle: Text(s.clientName.isNotEmpty ? '${s.clientName} · ${s.siteAddress}' : s.siteAddress),
+                          title: Text(s.clientName.isEmpty ? 'Untitled' : s.clientName, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          subtitle: Text(s.siteAddress),
                           trailing: pushing
                               ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
                               : IconButton(
@@ -109,7 +105,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   onPressed: () => _pushSession(s),
                                   icon: Icon(
                                     s.syncStatus == SyncStatus.complete ? Icons.cloud_done : Icons.cloud_upload_outlined,
-                                    color: s.syncStatus == SyncStatus.complete ? AppColors.success : AppColors.textMuted,
+                                    color: s.syncStatus == SyncStatus.complete ? p.success : p.textMuted,
                                   ),
                                 ),
                         );

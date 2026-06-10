@@ -8,7 +8,7 @@ import '../models/session.dart';
 import '../services/media_album_service.dart';
 import '../services/speech_service.dart';
 import '../theme/app_theme.dart';
-import 'review_screen.dart';
+import 'deliver_screen.dart';
 
 enum _CameraState { loading, ready, unavailable }
 
@@ -198,8 +198,13 @@ class _InspectScreenState extends State<InspectScreen> {
 
   Future<void> _finish() async {
     if (_recording) await _toggleRecord();
+    final s = widget.state.activeSession;
+    if (s == null || !mounted) return;
+    s.endedAt = DateTime.now();
+    s.syncStatus = SyncStatus.pending;
+    await widget.state.saveSession(s);
     if (!mounted) return;
-    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => ReviewScreen(state: widget.state)));
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => DeliverScreen(state: widget.state)));
   }
 
   Widget _buildPreviewArea() {

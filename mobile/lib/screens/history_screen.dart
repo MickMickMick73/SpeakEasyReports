@@ -47,10 +47,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return ListenableBuilder(
       listenable: widget.state,
       builder: (context, _) {
+        final p = AppPalette.of(context);
         return Scaffold(
           appBar: AppBar(title: const Text('History')),
           body: widget.state.sessions.isEmpty
-              ? const Center(child: Text('No saved inspections yet.', style: TextStyle(color: AppColors.textMuted)))
+              ? Center(child: Text('No saved inspections yet.', style: TextStyle(color: p.textMuted)))
               : ListView.builder(
                   itemCount: widget.state.sessions.length,
                   itemBuilder: (context, i) {
