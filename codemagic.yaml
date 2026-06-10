@@ -1,6 +1,6 @@
 # SpeakEasy Reports — iOS build + TestFlight (automatic code signing)
 # One-time setup in Codemagic app Environment variables:
-#   Group: code-signing
+#   Group: global
 #   CERTIFICATE_PRIVATE_KEY = contents of SpeakEasy_distribution_private_key.pem
 #   (see SETUP-Codemagic-AutoSigning.bat)
 # Team integration "SpeakEasy" must be connected under Developer Portal.
@@ -15,7 +15,7 @@ workflows:
       app_store_connect: SpeakEasy
     environment:
       groups:
-        - code-signing
+        - global
       vars:
         BUNDLE_ID: com.speakeasy.speakeasyReports
       flutter: stable
