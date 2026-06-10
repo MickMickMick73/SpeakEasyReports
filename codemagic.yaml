@@ -1,9 +1,9 @@
 # SpeakEasy Reports — iOS build + TestFlight upload
-# Prerequisites in Codemagic Team settings:
-#   1. Team integrations → Developer Portal → App Store Connect API key (App Manager role)
-#   2. Code signing identities → Apple Distribution cert + App Store profile for com.speakeasy.speakeasyReports
-#   3. App Store Connect → app record for com.speakeasy.speakeasyReports (create once if missing)
-# If your API key name in Codemagic is not "SpeakEasy", change integrations.app_store_connect below.
+# Signing setup: run SETUP-Codemagic-Signing.bat (TestFlight / App Store path)
+# Prerequisites:
+#   1. Team integrations → Developer Portal → App Store Connect API key (App Manager)
+#   2. Code signing → speakeasy-dist cert + speakeasy-appstore-profile (see SETUP bat)
+#   3. App Store Connect → app record for com.speakeasy.speakeasyReports
 
 workflows:
   speakeasy-ios:
@@ -18,8 +18,10 @@ workflows:
       xcode: latest
       cocoapods: default
       ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.speakeasy.speakeasyReports
+        provisioning_profiles:
+          - speakeasy-appstore-profile
+        certificates:
+          - speakeasy-dist
     scripts:
       - name: Get packages
         script: flutter pub get

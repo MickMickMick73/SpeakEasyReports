@@ -1,55 +1,73 @@
 # Fix: No matching profiles for com.speakeasy.speakeasyReports
 
-Codemagic needs a profile in **Code signing identities**. Use **Development** (easier than Ad Hoc).
+## TestFlight build (current workflow)
 
-Your iPhone is already registered: **UDID `00008150-001A58110CF1401C`**
+`codemagic.yaml` needs an **App Store** profile — not Development or Ad Hoc.
 
-Run **`SETUP-Codemagic-Signing.bat`**
+Run **`SETUP-Codemagic-Signing.bat`** — it opens the right pages.
 
-## Order matters: Codemagic FIRST, then Apple
-
-### A. Codemagic — certificate
+### A. Codemagic — Apple Distribution certificate
 
 Team settings → **Code signing identities** → **iOS certificates** → **Generate certificate**
 
 | Field | Value |
 |-------|-------|
-| Type | **Apple Development** |
-| Reference | `speakeasy-dev` |
-| API key | your integrated key |
+| Type | **Apple Distribution** |
+| Reference | `speakeasy-dist` |
+| API key | your integrated SpeakEasy key |
+
+If you already have 3 Distribution certs on Apple, **Fetch certificate** instead of Generate.
 
 ### B. Apple — App ID (if missing)
 
-https://developer.apple.com/account/resources/identifiers/list → **+** → `com.speakeasy.speakeasyReports`
+https://developer.apple.com/account/resources/identifiers/list → **+** → App IDs → `com.speakeasy.speakeasyReports`
 
-### C. Apple — Development profile (NOT Ad Hoc)
+### C. Apple — App Store profile
 
 https://developer.apple.com/account/resources/profiles/add
 
-1. **iOS App Development** → Continue
+1. **App Store** (under Distribution) → Continue
 2. App ID: **`com.speakeasy.speakeasyReports`**
-3. Certificate: **Apple Development** / **iPhone Developer** (from step A)
-4. Devices: **tick the checkbox** next to your iPhone ← **Generate stays grey without this**
-5. Name: `SpeakEasy Dev` → **Generate** → **Download** (optional)
+3. Certificate: **Apple Distribution** (from step A)
+4. Name: `SpeakEasy App Store` → **Generate**
 
-### Stuck on Generate?
+No device checkbox needed for App Store profiles.
 
-| Symptom | Fix |
-|---------|-----|
-| Generate greyed out | Tick **device checkbox** and **certificate** |
-| No Distribution cert | Use **Development** profile instead (step C) |
-| No devices listed | https://developer.apple.com/account/resources/devices/list — add iPhone UDID above |
-| No App ID | Do step B first |
+### D. Codemagic — fetch App Store profile
 
-### D. Codemagic — fetch profile
+**Code signing identities** → **iOS provisioning profiles** → **Fetch profiles**
 
-**iOS provisioning profiles** → **Fetch profiles** → **Development profiles** → `com.speakeasy.speakeasyReports` → `speakeasy-dev-profile` → **Download selected**
+1. Open **App Store profiles** (not Development, not Ad Hoc)
+2. Tick **`com.speakeasy.speakeasyReports`**
+3. Reference name: **`speakeasy-appstore-profile`**
+4. **Download selected**
+5. Confirm **green checkmark** under Certificate
 
-### E. Rebuild
+### E. App Store Connect — app record (first time only)
+
+https://appstoreconnect.apple.com → **Apps** → **+** → New App
+
+- Bundle ID: `com.speakeasy.speakeasyReports`
+- Name: SpeakEasy Reports (or your choice)
+
+### F. Rebuild
 
 SpeakEasyReports → **SpeakEasy Reports iOS** → **main** → **Start new build**
 
-## After install
+---
 
-1. **SpeakEasy-Link.bat** on PC
-2. App Settings → `http://192.168.1.110:3001`
+## Old Development / Diawi path (not used for TestFlight)
+
+If you only have `speakeasy-dev-profile` (Development), that will **not** work with the current TestFlight workflow. You need step D above.
+
+---
+
+## Common errors
+
+| Error | Fix |
+|-------|-----|
+| No matching profiles for `app_store` | Do step D — fetch **App Store** profile as `speakeasy-appstore-profile` |
+| No matching profiles for `speakeasy-appstore-profile` | Reference name must match exactly in Codemagic |
+| Certificate grey / no checkmark | Generate or fetch `speakeasy-dist` Distribution cert first |
+| 3 Distribution certs limit | Revoke an old one in Apple Developer Portal, or fetch existing cert |
+| App not found in App Store Connect | Do step E before first upload |

@@ -1,46 +1,48 @@
 @echo off
 setlocal
-title SpeakEasy - Fix Codemagic signing
+title SpeakEasy - Codemagic TestFlight signing
 set "BUNDLE=com.speakeasy.speakeasyReports"
 
 echo.
-echo  SpeakEasy Codemagic signing - EASIER path (Development, not Ad Hoc)
-echo  ====================================================================
+echo  SpeakEasy Codemagic signing - TestFlight (App Store)
+echo  =====================================================
 echo.
-echo  Your iPhone IS registered: UDID 00008150-001A58110CF1401C
+echo  Your workflow needs APP STORE signing (not Development).
+echo  Reference names must match codemagic.yaml exactly:
+echo    Certificate: speakeasy-dist
+echo    Profile:     speakeasy-appstore-profile
 echo.
-echo  DO THIS ORDER (Codemagic FIRST, then Apple):
+echo  DO THIS ORDER:
 echo.
-echo  [A] CODMAGIC - create certificate (2 min)
+echo  [A] CODMAGIC - Distribution certificate
 echo      Team settings - Code signing identities - iOS certificates
-echo      Generate certificate
-echo        Type: Apple DEVELOPMENT  (not Distribution - easier)
-echo        Reference: speakeasy-dev
-echo        API key: your integrated key
-echo      Create - upload back if asked
+echo      Generate certificate (or Fetch if you already have one)
+echo        Type: Apple DISTRIBUTION
+echo        Reference: speakeasy-dist
+echo        API key: SpeakEasy (your integrated key)
 echo.
 echo  [B] APPLE - App ID (if missing)
 echo      Identifiers - + - App ID - %BUNDLE%
 echo.
-echo  [C] APPLE - Development profile (NOT Ad Hoc)
-echo      Profiles - + - iOS App DEVELOPMENT
+echo  [C] APPLE - App Store profile
+echo      Profiles - + - App Store (under Distribution)
 echo        App: %BUNDLE%
-echo        Cert: Apple DEVELOPMENT (the one from step A or iPhone Developer)
-echo        Devices: TICK THE CHECKBOX next to your iPhone  (required!)
-echo        Name: SpeakEasy Dev
+echo        Cert: Apple Distribution (from step A)
+echo        Name: SpeakEasy App Store
 echo      Generate / Save
+echo      (No device checkbox needed for App Store)
 echo.
-echo  STUCK on Generate? Usually one of these:
-echo    - No certificate ticked
-echo    - No device checkbox ticked (most common)
-echo    - Wrong profile type (use Development not Ad Hoc)
-echo    - App ID %BUNDLE% does not exist yet
-echo.
-echo  [D] CODMAGIC - fetch profile
+echo  [D] CODMAGIC - fetch App Store profile
 echo      iOS provisioning profiles - Fetch profiles
-echo      Development profiles - %BUNDLE% - speakeasy-dev-profile - Download
+echo      App Store profiles - %BUNDLE%
+echo        Reference: speakeasy-appstore-profile
+echo      Download selected
+echo      GREEN checkmark under Certificate = ready
 echo.
-echo  [E] Rebuild SpeakEasy Reports iOS on main
+echo  [E] APP STORE CONNECT - app record (first time only)
+echo      Apps - + - New App - bundle %BUNDLE%
+echo.
+echo  [F] Rebuild SpeakEasy Reports iOS on main
 echo.
 start "" "https://codemagic.io/teams/6a277febc3867daed2847fcf"
 timeout /t 1 >nul
@@ -48,7 +50,7 @@ start "" "https://developer.apple.com/account/resources/identifiers/list"
 timeout /t 1 >nul
 start "" "https://developer.apple.com/account/resources/profiles/add"
 timeout /t 1 >nul
-start "" "https://developer.apple.com/account/resources/devices/list"
+start "" "https://appstoreconnect.apple.com/apps"
 timeout /t 1 >nul
 start "" "https://codemagic.io/apps"
 pause
