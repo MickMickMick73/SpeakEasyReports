@@ -56,10 +56,16 @@ class AppSettings {
         localServerEnabled: j['localServerEnabled'] as bool? ?? true,
         appearanceDark: j['appearanceDark'] as bool? ?? true,
         useBigKeyboard: j['useBigKeyboard'] as bool? ?? true,
-        preferredConnectionMode: ConnectionMode.values.byName(
-          j['preferredConnectionMode'] as String? ?? 'lan',
+        preferredConnectionMode: _parseConnectionMode(
+          j['preferredConnectionMode'] as String?,
         ),
       );
+
+  static ConnectionMode _parseConnectionMode(String? raw) {
+    final name = raw ?? 'lan';
+    if (name == 'cellular') return ConnectionMode.hotspot;
+    return ConnectionMode.values.byName(name);
+  }
 
   static AppSettings decode(String raw) => AppSettings.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   String encode() => jsonEncode(toJson());

@@ -12,13 +12,6 @@ typedef EmailCompressProgress = void Function(
   double? progress,
 });
 
-class EmailCompressException implements Exception {
-  EmailCompressException(this.message);
-  final String message;
-  @override
-  String toString() => message;
-}
-
 class EmailCompressResult {
   EmailCompressResult({
     required this.htmlPath,

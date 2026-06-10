@@ -21,7 +21,7 @@ class EmailShareException implements Exception {
 }
 
 class _PrepareState {
-  _PrepareState({required this.step, this.elapsedSeconds = 0, this.maxSeconds = 120, this.progress});
+  _PrepareState({required this.step, this.elapsedSeconds = 0, this.maxSeconds = 60, this.progress});
 
   String step;
   int elapsedSeconds;
@@ -121,7 +121,7 @@ class ReportShareService {
       final packed = await _compress.prepareAttachments(
         session: session,
         htmlReport: html,
-        onProgress: (step, {elapsedSeconds = 0, maxSeconds = 120, progress}) {
+        onProgress: (step, {elapsedSeconds = 0, maxSeconds = 60, progress}) {
           prepareState.value = _PrepareState(
             step: step,
             elapsedSeconds: elapsedSeconds,
@@ -156,18 +156,6 @@ class ReportShareService {
         isHTML: false,
       );
       await FlutterEmailSender.send(email);
-    } on EmailCompressException catch (e) {
-      if (context.mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('Video too large'),
-            content: Text(e.message),
-            actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-          ),
-        );
-      }
-      throw EmailShareException(e.message);
     } catch (e) {
       if (e is EmailShareException) rethrow;
       final subject = ReportBuilder.buildEmailSubject(session, settings);
