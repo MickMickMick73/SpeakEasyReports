@@ -23,6 +23,15 @@ workflows:
         certificates:
           - speakeasy-dist
     scripts:
+      - name: Verify iOS bundle ID
+        script: |
+          set -e
+          BUNDLE_ID="com.speakeasy.speakeasyReports"
+          if ! grep -q "PRODUCT_BUNDLE_IDENTIFIER = ${BUNDLE_ID};" ios/Runner.xcodeproj/project.pbxproj; then
+            echo "ERROR: ios/Runner.xcodeproj must use ${BUNDLE_ID}"
+            exit 1
+          fi
+          echo "Bundle ID OK: ${BUNDLE_ID}"
       - name: Get packages
         script: flutter pub get
       - name: Install iOS pods
