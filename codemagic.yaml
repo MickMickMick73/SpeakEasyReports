@@ -3,7 +3,9 @@
 #   Group: global
 #   CERTIFICATE_PRIVATE_KEY = contents of SpeakEasy_distribution_private_key.pem
 #   (see SETUP-Codemagic-AutoSigning.bat)
-# Team integration "SpeakEasy" must be connected under Developer Portal.
+# App Store Connect API vars in group "global":
+#   APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
+#   APP_STORE_CONNECT_PRIVATE_KEY, CERTIFICATE_PRIVATE_KEY
 
 workflows:
   speakeasy-ios:
@@ -11,8 +13,6 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     working_directory: mobile
-    integrations:
-      app_store_connect: SpeakEasy
     environment:
       groups:
         - global
@@ -58,5 +58,7 @@ workflows:
       - /tmp/xcodebuild_logs/*.log
     publishing:
       app_store_connect:
-        auth: integration
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
         submit_to_testflight: true
