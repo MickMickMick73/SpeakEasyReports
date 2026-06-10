@@ -1,7 +1,9 @@
-# SpeakEasy Reports — iOS build on cloud Mac (Windows cannot build IPA locally)
-# Setup: https://codemagic.io → connect GitHub repo → enable this workflow
-# Signing: Team settings → Team integrations → Developer Portal (your existing .p8 API key)
-# Then: codemagic.yaml settings → Code signing identities → generate cert + fetch profile
+# SpeakEasy Reports — iOS build + TestFlight upload
+# Prerequisites in Codemagic Team settings:
+#   1. Team integrations → Developer Portal → App Store Connect API key (App Manager role)
+#   2. Code signing identities → Apple Distribution cert + App Store profile for com.speakeasy.speakeasyReports
+#   3. App Store Connect → app record for com.speakeasy.speakeasyReports (create once if missing)
+# If your API key name in Codemagic is not "SpeakEasy", change integrations.app_store_connect below.
 
 workflows:
   speakeasy-ios:
@@ -9,12 +11,14 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     working_directory: mobile
+    integrations:
+      app_store_connect: SpeakEasy
     environment:
       flutter: stable
       xcode: latest
       cocoapods: default
       ios_signing:
-        distribution_type: development
+        distribution_type: app_store
         bundle_identifier: com.speakeasy.speakeasyReports
     scripts:
       - name: Get packages
@@ -27,11 +31,16 @@ workflows:
         script: |
           xcode-project use-profiles \
             --project ios/Runner.xcodeproj \
-            --archive-method development \
             --export-options-plist $HOME/export_options.plist
       - name: Build iOS IPA
         script: flutter build ipa --release --export-options-plist=$HOME/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
-    # Add your email under publishing after first successful build
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # Uncomment and set your TestFlight group names from App Store Connect:
+        # beta_groups:
+        #   - Internal Testers
