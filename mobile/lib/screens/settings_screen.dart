@@ -87,7 +87,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('SpeakEasy Reports v3.14emc', style: TextStyle(fontWeight: FontWeight.w700, color: p.text)),
+          Text('SpeakEasy Reports v3.14.0', style: TextStyle(fontWeight: FontWeight.w700, color: p.text)),
           Text('App Store edition', style: TextStyle(color: p.textMuted)),
           const SizedBox(height: 6),
           Text('© 2026 SpeakEasy Reports', style: TextStyle(color: p.textMuted, fontSize: 12)),

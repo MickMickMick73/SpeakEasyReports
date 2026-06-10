@@ -110,7 +110,7 @@ class SyncService {
       'technicianName': settings.inspectorName,
       'deviceId': 'flutter',
       'deviceModel': 'SpeakEasy Flutter',
-      'appVersion': '3.14emc',
+      'appVersion': '3.14.0',
       'startedAt': session.startedAt.toIso8601String(),
       'endedAt': session.endedAt?.toIso8601String(),
       'issues': [],
