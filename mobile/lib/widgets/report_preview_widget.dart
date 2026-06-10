@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -53,7 +55,13 @@ class _ReportPreviewWidgetState extends State<ReportPreviewWidget> {
         borderRadius: BorderRadius.circular(12),
         child: Stack(
           children: [
-            WebViewWidget(controller: _controller),
+            WebViewWidget(
+              controller: _controller,
+              gestureRecognizers: {
+                Factory<VerticalDragGestureRecognizer>(() => VerticalDragGestureRecognizer()),
+                Factory<HorizontalDragGestureRecognizer>(() => HorizontalDragGestureRecognizer()),
+              },
+            ),
             if (!_ready) const Center(child: CircularProgressIndicator()),
           ],
         ),

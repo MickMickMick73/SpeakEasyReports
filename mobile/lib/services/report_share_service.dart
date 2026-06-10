@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -19,6 +20,15 @@ class EmailShareException implements Exception {
   String toString() => message;
 }
 
+class _PrepareState {
+  _PrepareState({required this.step, this.elapsedSeconds = 0, this.maxSeconds = 120, this.progress});
+
+  String step;
+  int elapsedSeconds;
+  int maxSeconds;
+  double? progress;
+}
+
 class ReportShareService {
   final _compress = EmailCompressService();
 
@@ -32,11 +42,12 @@ class ReportShareService {
     await htmlFile.writeAsString(html);
     await textFile.writeAsString(text);
 
+    final subject = ReportBuilder.buildEmailSubject(session, settings);
     final box = context != null ? _shareOrigin(context) : null;
     await Share.shareXFiles(
       [XFile(htmlFile.path), XFile(textFile.path)],
-      text: text,
-      subject: ReportBuilder.buildEmailSubject(session, settings),
+      text: '$subject — inspection report attached.',
+      subject: subject,
       sharePositionOrigin: box,
     );
   }
@@ -57,26 +68,76 @@ class ReportShareService {
 
     if (!context.mounted) return;
 
-    await showDialog<void>(
+    final prepareState = ValueNotifier(_PrepareState(step: 'Starting…'));
+    Timer? elapsedTimer;
+
+    unawaited(showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 20),
-            Expanded(child: Text('Preparing email attachments…\nOriginal photos and videos stay unchanged.')),
-          ],
-        ),
+      builder: (ctx) => ValueListenableBuilder<_PrepareState>(
+        valueListenable: prepareState,
+        builder: (_, state, __) {
+          final remaining = (state.maxSeconds - state.elapsedSeconds).clamp(0, state.maxSeconds);
+          return AlertDialog(
+            title: const Text('Preparing email'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (state.progress != null) ...[
+                  LinearProgressIndicator(value: state.progress),
+                  const SizedBox(height: 12),
+                ] else
+                  const LinearProgressIndicator(),
+                const SizedBox(height: 12),
+                Text(state.step),
+                const SizedBox(height: 8),
+                Text(
+                  '${state.elapsedSeconds}s elapsed · up to ${state.maxSeconds}s',
+                  style: Theme.of(ctx).textTheme.bodySmall,
+                ),
+                if (remaining < state.maxSeconds)
+                  Text(
+                    'Will continue without video if not ready in ${remaining}s',
+                    style: Theme.of(ctx).textTheme.bodySmall,
+                  ),
+              ],
+            ),
+          );
+        },
       ),
-    );
+    ));
+
+    elapsedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final current = prepareState.value;
+      prepareState.value = _PrepareState(
+        step: current.step,
+        elapsedSeconds: current.elapsedSeconds + 1,
+        maxSeconds: current.maxSeconds,
+        progress: current.progress,
+      );
+    });
 
     try {
       final html = ReportBuilder.buildHtmlReport(session, settings);
-      final packed = await _compress.prepareAttachments(session: session, htmlReport: html);
+      final packed = await _compress.prepareAttachments(
+        session: session,
+        htmlReport: html,
+        onProgress: (step, {elapsedSeconds = 0, maxSeconds = 120, progress}) {
+          prepareState.value = _PrepareState(
+            step: step,
+            elapsedSeconds: elapsedSeconds,
+            maxSeconds: maxSeconds,
+            progress: progress,
+          );
+        },
+      );
 
       final subject = ReportBuilder.buildEmailSubject(session, settings);
       var body = ReportBuilder.buildEmailBody(session, settings);
+      if (packed.videoOmitted) {
+        body += '\n\nNote: Video was omitted from this email (compression took too long). Use Push to PC for full video.';
+      }
       if (packed.skippedVideoCount > 0) {
         body += '\n\nNote: Only 1 video attaches to email. ${packed.skippedVideoCount} extra video(s) — use Push to PC.';
       }
@@ -126,6 +187,8 @@ class ReportShareService {
         throw EmailShareException('Could not open Mail. Check that an email account is set up.');
       }
     } finally {
+      elapsedTimer?.cancel();
+      prepareState.dispose();
       if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
     }
   }

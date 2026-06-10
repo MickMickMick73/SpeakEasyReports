@@ -98,6 +98,7 @@ class _VoiceInputFieldState extends State<VoiceInputField> with SingleTickerProv
       _starting = false;
     });
     await widget.speech.startListening(
+      persistent: true,
       onResult: (text, isFinal) {
         if (!_epochValid(epoch)) return;
         final value = _normalize(text);

@@ -10,6 +10,7 @@ class NewInspectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Job type')),
       body: ListView(
@@ -18,7 +19,7 @@ class NewInspectionScreen extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Material(
-              color: AppColors.surface,
+              color: p.surface,
               borderRadius: BorderRadius.circular(16),
               child: InkWell(
                 borderRadius: BorderRadius.circular(16),
@@ -27,9 +28,12 @@ class NewInspectionScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border, width: 2),
+                    border: Border.all(color: p.border, width: 2),
                   ),
-                  child: Text(inspectionTypeLabel(type), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                  child: Text(
+                    inspectionTypeLabel(type),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: p.text),
+                  ),
                 ),
               ),
             ),

@@ -110,7 +110,7 @@ class SyncService {
       'technicianName': settings.inspectorName,
       'deviceId': 'flutter',
       'deviceModel': 'SpeakEasy Flutter',
-      'appVersion': '1.2.0',
+      'appVersion': '3.14emc',
       'startedAt': session.startedAt.toIso8601String(),
       'endedAt': session.endedAt?.toIso8601String(),
       'issues': [],
@@ -123,7 +123,9 @@ class SyncService {
                 'contentHash': m.contentHash,
                 'createdAt': session.startedAt.toIso8601String(),
                 'transcript': m.transcript,
-                'transcriptSegments': m.transcriptSegments.map((s) => s.toJson()).toList(),
+                'transcriptSegments': m.transcript.trim().isNotEmpty
+                    ? <Map<String, dynamic>>[]
+                    : m.transcriptSegments.map((s) => s.toJson()).toList(),
                 'recordingStartedAt': m.recordingStartedAt,
                 'recordingEndedAt': m.recordingEndedAt,
               })

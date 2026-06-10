@@ -1,7 +1,7 @@
 name: speakeasy_reports
 description: SpeakEasy Reports — field inspections with voice, video, and PC sync.
 publish_to: 'none'
-version: 1.2.0+4
+version: 3.14.0+14
 
 environment:
   sdk: ^3.12.1

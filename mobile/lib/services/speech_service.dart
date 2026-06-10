@@ -6,6 +6,7 @@ class SpeechService {
   bool _ready = false;
   int _listenGeneration = 0;
   bool _continuous = false;
+  bool _persistent = false;
   String _lastPartial = '';
   void Function(String text, bool isFinal)? _onResult;
 
@@ -22,10 +23,11 @@ class SpeechService {
   String get lastPartial => _lastPartial;
 
   void _handleStatus(String status) {
-    if (!_continuous || !_ready) return;
+    if (!_ready) return;
+    if (!_continuous && !_persistent) return;
     if (status == 'done' || status == 'notListening') {
       Future.delayed(const Duration(milliseconds: 250), () {
-        if (_continuous && !_speech.isListening) {
+        if ((_continuous || _persistent) && !_speech.isListening) {
           _startSession();
         }
       });
@@ -36,9 +38,11 @@ class SpeechService {
     required void Function(String text, bool isFinal) onResult,
     String localeId = 'en_AU',
     bool continuous = false,
+    bool persistent = false,
   }) async {
     _onResult = onResult;
     _continuous = continuous;
+    _persistent = persistent;
     _lastPartial = '';
     if (!_ready) {
       _ready = await initialize();
@@ -56,6 +60,10 @@ class SpeechService {
     if (!_ready || _onResult == null) return;
 
     final generation = ++_listenGeneration;
+    final pauseFor = (_continuous || _persistent)
+        ? const Duration(seconds: 12)
+        : const Duration(seconds: 4);
+
     await _speech.listen(
       onResult: (SpeechRecognitionResult result) {
         if (generation != _listenGeneration) return;
@@ -68,7 +76,7 @@ class SpeechService {
         _onResult?.call(text, result.finalResult);
       },
       listenFor: const Duration(minutes: 30),
-      pauseFor: const Duration(seconds: 4),
+      pauseFor: pauseFor,
       listenOptions: stt.SpeechListenOptions(
         localeId: localeId,
         listenMode: stt.ListenMode.dictation,
@@ -80,6 +88,7 @@ class SpeechService {
 
   Future<String> stop({bool keepPartial = false}) async {
     _continuous = false;
+    _persistent = false;
     _listenGeneration++;
     final partial = _lastPartial.trim();
     if (_speech.isListening) {

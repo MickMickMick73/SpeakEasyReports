@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
+import '../services/speech_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/voice_input_field.dart';
 
 class ProjectNameScreen extends StatefulWidget {
   const ProjectNameScreen({super.key, required this.onContinue});
@@ -13,10 +16,23 @@ class ProjectNameScreen extends StatefulWidget {
 }
 
 class _ProjectNameScreenState extends State<ProjectNameScreen> {
+  final _speech = SpeechService();
   final _controller = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _speech.initialize().then((_) {
+      if (!mounted) return;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
+    });
+  }
+
+  @override
   void dispose() {
+    _speech.stop();
     _controller.dispose();
     super.dispose();
   }
@@ -34,30 +50,28 @@ class _ProjectNameScreenState extends State<ProjectNameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final p = AppPalette.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('New project')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text(
+          Text(
             'Name this inspection project',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: p.text),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Photos and videos are saved to a SpeakEasyReports album on your iPhone, grouped under this project name.',
-            style: TextStyle(color: AppColors.textMuted),
+            style: TextStyle(color: p.textMuted),
           ),
           const SizedBox(height: 20),
-          const Text('Project name *', style: TextStyle(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          TextField(
+          VoiceInputField(
+            label: 'Project name *',
             controller: _controller,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(
-              hintText: 'e.g. 12 Oak Street plumbing check',
-            ),
-            onSubmitted: (_) => _continue(),
+            speech: _speech,
+            active: true,
+            onFocus: () {},
           ),
           const SizedBox(height: 24),
           PrimaryButton(label: 'Continue', icon: Icons.arrow_forward, onPressed: _continue),

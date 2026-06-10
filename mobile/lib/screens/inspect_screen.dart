@@ -169,7 +169,7 @@ class _InspectScreenState extends State<InspectScreen> {
     final trailing = await _speech.stop(keepPartial: true);
     final video = await _camera!.stopVideoRecording();
     final s = widget.state.activeSession!;
-    final transcript = [..._segments, _liveTranscript, trailing]
+    final transcript = [..._segments, trailing]
         .where((part) => part.trim().isNotEmpty)
         .join(' ')
         .trim();

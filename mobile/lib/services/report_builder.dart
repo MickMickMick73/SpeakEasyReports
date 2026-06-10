@@ -18,9 +18,14 @@ class ReportBuilder {
   }
 
   static String _fullTranscript(MediaItem video) {
+    final segments = video.transcriptSegments
+        .map((segment) => segment.text.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    final joinedSegments = segments.join(' ');
     final direct = video.transcript.trim();
-    if (direct.isNotEmpty) return direct;
-    return video.transcriptSegments.map((segment) => segment.text.trim()).where((t) => t.isNotEmpty).join(' ');
+    if (joinedSegments.isNotEmpty) return joinedSegments;
+    return direct;
   }
 
   static String buildNarrationSection(InspectionSession session) {

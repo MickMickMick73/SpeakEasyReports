@@ -32,32 +32,56 @@ class _DeliverScreenState extends State<DeliverScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Review & deliver')),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
+      body: Column(
         children: [
-          Text('${s.clientName} — ready to send', style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(
-            'Review the report, photos, and videos before you send.',
-            style: TextStyle(color: p.textMuted),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${s.clientName} — ready to send', style: Theme.of(context).textTheme.titleLarge),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Review the report, photos, and videos before you send.',
+                    style: TextStyle(color: p.textMuted),
+                  ),
+                  const SizedBox(height: 16),
+                  SessionMediaReview(session: s, settings: widget.state.settings, reportHeight: 400),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
-          SessionMediaReview(session: s, settings: widget.state.settings, reportHeight: 400),
-          const SizedBox(height: 20),
-          DeliveryActions(
-            state: widget.state,
-            session: s,
-            showNewInspection: true,
-            onNewInspection: _newJob,
-            onStatus: (msg, {bool isError = false}) => setState(() {
-              _message = msg;
-              _isError = isError;
-            }),
+          Material(
+            elevation: 8,
+            color: Theme.of(context).scaffoldBackgroundColor,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DeliveryActions(
+                      state: widget.state,
+                      session: s,
+                      showNewInspection: true,
+                      onNewInspection: _newJob,
+                      onStatus: (msg, {bool isError = false}) => setState(() {
+                        _message = msg;
+                        _isError = isError;
+                      }),
+                    ),
+                    if (_message.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(_message, style: TextStyle(color: _isError ? p.danger : p.success)),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ),
-          if (_message.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            Text(_message, style: TextStyle(color: _isError ? p.danger : p.success)),
-          ],
         ],
       ),
     );

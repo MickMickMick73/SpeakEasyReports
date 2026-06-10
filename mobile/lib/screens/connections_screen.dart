@@ -1,4 +1,3 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -22,37 +21,7 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
   final _sync = SyncService();
   String _status = 'Not tested yet';
   bool _testing = false;
-  String _networkLabel = 'Checking…';
   bool _scanning = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _refreshNetwork();
-  }
-
-  Future<void> _refreshNetwork() async {
-    final results = await Connectivity().checkConnectivity();
-    final labels = results.map((r) {
-      switch (r) {
-        case ConnectivityResult.wifi:
-          return 'Wi‑Fi';
-        case ConnectivityResult.mobile:
-          return 'Mobile data';
-        case ConnectivityResult.ethernet:
-          return 'Ethernet';
-        case ConnectivityResult.vpn:
-          return 'VPN';
-        case ConnectivityResult.none:
-          return 'Offline';
-        default:
-          return r.name;
-      }
-    }).toList();
-    if (mounted) {
-      setState(() => _networkLabel = labels.isEmpty ? 'Unknown' : labels.join(', '));
-    }
-  }
 
   Future<void> _test() async {
     setState(() {
@@ -179,26 +148,6 @@ class _ConnectionsScreenState extends State<ConnectionsScreen> {
                   icon: const Icon(Icons.play_arrow),
                   label: const Text('Start Hotspot Transfer'),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          _ModeCard(
-            title: 'Cellular',
-            icon: Icons.signal_cellular_alt,
-            selected: mode == ConnectionMode.cellular,
-            onSelect: () => _selectMode(ConnectionMode.cellular),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Network: $_networkLabel', style: TextStyle(fontWeight: FontWeight.w700, color: p.text)),
-                const SizedBox(height: 8),
-                Text(
-                  'Cellular alone cannot reach your PC. Turn on Personal Hotspot so your laptop joins the phone\'s network, then use Hotspot mode above.',
-                  style: TextStyle(color: p.textMuted, height: 1.4),
-                ),
-                const SizedBox(height: 10),
-                OutlinedButton(onPressed: _refreshNetwork, child: const Text('Refresh status')),
               ],
             ),
           ),
