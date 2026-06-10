@@ -8,24 +8,22 @@ echo.
 echo  Codemagic automatic signing (App Store Connect)
 echo  =================================================
 echo.
-echo  The workflow now fetches cert + profile from Apple during each build.
-echo  You only need ONE environment variable in Codemagic (one time):
+echo  Automatic path (recommended):
+echo    1. Save Codemagic API token to:
+echo       %USERPROFILE%\Desktop\aapple api stuff\codemagic-api-token.txt
+echo       (Teams ^> Personal Account ^> Integrations ^> Codemagic API ^> Show)
+echo    2. Double-click UPLOAD-Codemagic-AutoSigning.bat
 echo.
-echo  1. Open SpeakEasyReports app in Codemagic
-echo  2. Environment variables ^> Add group: code-signing
-echo  3. Add variable:
-echo       Name:   CERTIFICATE_PRIVATE_KEY
-echo       Value:  entire contents of the .pem file (including BEGIN/END lines)
-echo       Secret: YES
-echo  4. Confirm Team integration "SpeakEasy" is connected (Developer Portal)
+echo  Manual path (if API upload is unavailable):
+echo    1. Open SpeakEasyReports app in Codemagic
+echo    2. Environment variables ^> Add group: code-signing
+echo    3. Add secret variable CERTIFICATE_PRIVATE_KEY = full .pem file contents
+echo    4. Confirm Team integration "SpeakEasy" is connected (Developer Portal)
 echo.
-if exist "%KEY%" (
-  echo  Opening private key file for copy/paste...
-  start "" notepad "%KEY%"
-) else (
+if not exist "%KEY%" (
   echo  WARNING: %KEY% not found.
   echo  Run: python scripts\create_appstore_signing.py --force-new-cert
 )
 echo.
-start "" "https://codemagic.io/apps"
+start "" "https://codemagic.io/teams/6a277febc3867daed2847fcf"
 pause

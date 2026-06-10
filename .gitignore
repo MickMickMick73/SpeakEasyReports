@@ -19,6 +19,7 @@ tools/flutter/
 .flutterflow-token
 *.log
 codemagic-signing-env.txt
+codemagic-api-token.txt
 *.p12
 *.pem
 *.mobileprovision
